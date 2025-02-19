@@ -1,51 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>LepLoop V3 Clone (Single-File Demo)</title>
-  <!-- Load the Faust WebAssembly library from the official CDN -->
-  <script src="https://faust.grame.fr/faustwasm/next/faustwasm.js"></script>
-
+  <meta charset="UTF-8">
+  <title>LepLoop V3 Clone (Web Audio Only)</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #222;
-      color: #eee;
       margin: 0;
       padding: 0;
+      background: #222;
+      color: #eee;
+      font-family: sans-serif;
     }
-    h1, h2 {
-      margin: 1rem;
+    h1, h2, h3 {
+      margin: 0.8rem;
     }
-    #app-container {
+    #app {
       display: flex;
       flex-direction: column;
       gap: 1rem;
-      margin: 1rem;
+      padding: 1rem;
     }
-    .control-panel, .sequencer {
+    .panel {
       background: #333;
       padding: 1rem;
       border-radius: 8px;
     }
-    .control-panel > div {
+    .panel > div {
       margin-bottom: 1rem;
     }
     label {
       display: inline-block;
-      width: 160px;
+      width: 180px;
       margin-right: 1rem;
+      vertical-align: middle;
     }
     input[type="range"] {
       width: 200px;
       vertical-align: middle;
     }
-    #steps {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
+    .seq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+      gap: 4px;
     }
-    #steps button {
+    .seq-grid button {
       width: 30px;
       height: 30px;
       background: #555;
@@ -55,31 +53,30 @@
       cursor: pointer;
       outline: none;
     }
-    #steps button.active {
-      background: #0b3;
+    .active {
+      background: #0b3 !important;
     }
     .btn {
       background: #555;
       color: #fff;
       border: 1px solid #999;
       border-radius: 4px;
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.8rem;
       cursor: pointer;
       outline: none;
     }
     .btn:hover {
       background: #777;
     }
-    /* You can add more styling as needed. */
   </style>
 </head>
 <body>
-  <h1>LepLoop V3 Clone (Single-File Demo)</h1>
-  <div id="app-container">
-    
-    <!-- Control Panel -->
-    <div class="control-panel">
-      <h2>Controls</h2>
+  <h1>LepLoop V3 Clone (Web Audio)</h1>
+  <div id="app">
+
+    <!-- SYNTH & EFFECTS CONTROLS -->
+    <div class="panel" id="synth-panel">
+      <h2>Synth Controls</h2>
       <div>
         <label for="vco1Freq">VCO1 Frequency</label>
         <input type="range" id="vco1Freq" min="20" max="2000" step="1" value="220">
@@ -89,22 +86,98 @@
         <input type="range" id="vco2Freq" min="20" max="2000" step="1" value="220">
       </div>
       <div>
-        <label for="cutoff">Filter Cutoff</label>
+        <label for="vco1Wave">VCO1 Waveform</label>
+        <select id="vco1Wave">
+          <option value="sine">Sine</option>
+          <option value="square">Square</option>
+          <option value="sawtooth" selected>Saw</option>
+          <option value="triangle">Triangle</option>
+        </select>
+      </div>
+      <div>
+        <label for="vco2Wave">VCO2 Waveform</label>
+        <select id="vco2Wave">
+          <option value="sine">Sine</option>
+          <option value="square">Square</option>
+          <option value="sawtooth">Saw</option>
+          <option value="triangle" selected>Triangle</option>
+        </select>
+      </div>
+      <div>
+        <label for="ringLevel">Ring Mod Level</label>
+        <input type="range" id="ringLevel" min="0" max="1" step="0.01" value="0">
+      </div>
+      <div>
+        <label for="fmAmount">FM Amount</label>
+        <input type="range" id="fmAmount" min="0" max="400" step="1" value="0">
+      </div>
+      <div>
+        <label for="vco1Gain">VCO1 Gain</label>
+        <input type="range" id="vco1Gain" min="0" max="1" step="0.01" value="0.8">
+      </div>
+      <div>
+        <label for="vco2Gain">VCO2 Gain</label>
+        <input type="range" id="vco2Gain" min="0" max="1" step="0.01" value="0.8">
+      </div>
+
+      <hr />
+      <h3>Filter</h3>
+      <div>
+        <label for="cutoff">Cutoff</label>
         <input type="range" id="cutoff" min="20" max="10000" step="10" value="1000">
       </div>
       <div>
-        <label for="resonance">Filter Resonance</label>
-        <input type="range" id="resonance" min="0" max="1.2" step="0.01" value="0.6">
+        <label for="resonance">Resonance</label>
+        <input type="range" id="resonance" min="1" max="20" step="0.1" value="1">
+      </div>
+
+      <hr/>
+      <h3>Envelopes & LFO</h3>
+      <div>
+        <label for="env1Attack">ENV1 Attack</label>
+        <input type="range" id="env1Attack" min="0" max="2" step="0.01" value="0.01">
       </div>
       <div>
-        <label for="masterGain">Master Gain</label>
-        <input type="range" id="masterGain" min="0" max="1" step="0.01" value="0.8">
+        <label for="env1Release">ENV1 Release</label>
+        <input type="range" id="env1Release" min="0.01" max="5" step="0.01" value="0.2">
       </div>
-      
+      <div>
+        <label for="env2Attack">ENV2 Attack</label>
+        <input type="range" id="env2Attack" min="0" max="2" step="0.01" value="0.01">
+      </div>
+      <div>
+        <label for="env2Release">ENV2 Release</label>
+        <input type="range" id="env2Release" min="0.01" max="5" step="0.01" value="0.2">
+      </div>
+      <div>
+        <label for="lfoFreq">LFO Frequency</label>
+        <input type="range" id="lfoFreq" min="0.1" max="20" step="0.1" value="2">
+      </div>
+      <div>
+        <label for="lfoDepth">LFO Depth (Filter)</label>
+        <input type="range" id="lfoDepth" min="0" max="2000" step="1" value="0">
+      </div>
+
+      <hr/>
+      <h3>Cassa (Bass Drum)</h3>
+      <div>
+        <label for="cassaTune">Cassa Pitch</label>
+        <input type="range" id="cassaTune" min="30" max="100" step="1" value="60">
+      </div>
+      <div>
+        <label for="cassaDecay">Cassa Decay</label>
+        <input type="range" id="cassaDecay" min="0.01" max="2" step="0.01" value="0.3">
+      </div>
+      <div>
+        <label for="cassaDist">Cassa Distortion</label>
+        <input type="range" id="cassaDist" min="0" max="1" step="0.01" value="0.2">
+      </div>
+
+      <hr/>
       <h3>Effects</h3>
       <div>
-        <label for="distDrive">Dist Drive</label>
-        <input type="range" id="distDrive" min="1" max="20" step="0.1" value="1">
+        <label for="distAmount">Distortion Amount</label>
+        <input type="range" id="distAmount" min="0" max="1" step="0.01" value="0">
       </div>
       <div>
         <label for="delayTime">Delay Time (s)</label>
@@ -119,16 +192,8 @@
         <input type="range" id="delayMix" min="0" max="1" step="0.01" value="0.2">
       </div>
       <div>
-        <label for="revSize">Reverb Size</label>
-        <input type="range" id="revSize" min="0" max="1" step="0.01" value="0.5">
-      </div>
-      <div>
-        <label for="revDamp">Reverb Damping</label>
-        <input type="range" id="revDamp" min="0" max="1" step="0.01" value="0.5">
-      </div>
-      <div>
-        <label for="revMix">Reverb Mix</label>
-        <input type="range" id="revMix" min="0" max="1" step="0.01" value="0.2">
+        <label for="reverbMix">Reverb Mix</label>
+        <input type="range" id="reverbMix" min="0" max="1" step="0.01" value="0.2">
       </div>
       <div>
         <label for="bitDepth">Bit Depth</label>
@@ -136,265 +201,690 @@
       </div>
       <div>
         <label for="sampleRateRedux">Sample Rate Redux</label>
-        <input type="range" id="sampleRateRedux" min="1" max="32" step="1" value="1">
+        <input type="range" id="sampleRateRedux" min="1" max="20" step="1" value="1">
+      </div>
+
+      <hr/>
+      <div>
+        <label for="masterGain">Master Gain</label>
+        <input type="range" id="masterGain" min="0" max="1" step="0.01" value="0.8">
       </div>
     </div>
 
-    <!-- Sequencer Panel -->
-    <div class="sequencer">
+    <!-- SEQUENCER PANEL -->
+    <div class="panel">
       <h2>Sequencer</h2>
-      <button class="btn" id="playPauseBtn">Play</button>
-      <label>Tempo <input type="number" id="tempo" value="120" style="width:50px"/></label>
-      <div id="steps"></div>
+      <!-- 4-Track Rhythm Sequencer -->
+      <h3>Rhythm (4 Tracks, 16 Steps)</h3>
+      <button class="btn" id="rhythmPlayBtn">Play/Pause Rhythm</button>
+      <label>Tempo <input type="number" id="rhythmTempo" value="120" style="width:50px"/></label>
+      <br/><br/>
+      <div id="rhythmContainer"></div>
+
+      <!-- 16-Step Melodic Sequencer (with optional scale quant) -->
+      <h3>Melodic (16 Steps, VCO1 pitch)</h3>
+      <button class="btn" id="melodicPlayBtn">Play/Pause Melodic</button>
+      <label>Tempo <input type="number" id="melodicTempo" value="120" style="width:50px"/></label>
+      <br/><br/>
+      <label>Scale Quantization</label>
+      <select id="scaleSelect">
+        <option value="none">None</option>
+        <option value="minor">Minor</option>
+        <option value="major">Major</option>
+      </select>
+      <div id="melodicContainer"></div>
     </div>
+
   </div>
 
-  <!-- Inline DSP Code as a JS String for on-the-fly compilation -->
   <script>
-    const leploopDSP = `import("stdfaust.lib");
-import("filter.lib");    
-import("envelope.lib");  
-import("disto.lib");     
-import("reverb.lib");    
-import("delay.lib");     
-import("ba.lib");        
-import("maths.lib");     
+    /////////////////////////////////////////
+    // GLOBAL AUDIO CONTEXT + NODES
+    /////////////////////////////////////////
 
-declare name "LepLoop SingleFile DSP";
+    let audioCtx;
+    let masterGainNode;
 
-// ----------------------------------------------------------------
-// Oscillators & Mixer
-// ----------------------------------------------------------------
-wave_selector = nentry("WaveformSelect", 0, 0, 2, 1) : si.smoo; 
-fm_amount = hslider("FM Amount", 0.0, 0, 1000, 0.1) : si.smoo;
-fm_source = hslider("FM Source (Hz)", 0.0, 0, 1000, 0.1) : si.smoo;
+    // VCOs
+    let osc1, osc2;
+    let osc1Gain, osc2Gain;
+    let ringGain;
+    let ringOscGain;    // For ring mod
+    let fmGain;         // For FM
+    let filterNode;
 
-vco1_freq = hslider("VCO1/Freq", 220.0, 20.0, 2000.0, 0.1) : si.smoo;
-vco2_freq = hslider("VCO2/Freq", 220.0, 20.0, 2000.0, 0.1) : si.smoo;
+    // Envelopes: We'll do 2 envelope "engines" controlling separate VCAs:
+    let env1GainNode, env2GainNode;
+    // Envelope states
+    let env1Gate = false;
+    let env2Gate = false;
+    let env1Level = 0;
+    let env2Level = 0;
+    let env1Attack = 0.01;
+    let env1Release = 0.2;
+    let env2Attack = 0.01;
+    let env2Release = 0.2;
 
-// Basic wave selection
-waveform(freq, sel) = select2(sel,
-    ba.triangle(freq),
-    ba.square(freq),
-    ba.sawtooth(freq)
-);
+    // LFO
+    let lfoOsc, lfoGain;
 
-vco1_base = waveform(vco1_freq + fm_source*fm_amount, wave_selector);
-vco2_base = waveform(vco2_freq, wave_selector);
+    // Cassa (kick)
+    let cassaOsc;
+    let cassaGain;
+    let cassaGate = false;
+    let cassaEnvLevel = 0;
+    let cassaDecay = 0.3;
 
-// Ring Mod
-ring_mod = vco1_base * vco2_base;
+    // Effects
+    let distNode;       // WaveShaper for distortion
+    let delayNode, delayGain;
+    let reverbNode;     // Simple feedback reverb
+    let reverbGain;
+    let bitcrusherNode; // ScriptProcessor for bit / sample rate reduction
 
-vco1_level = hslider("Mixer/VCO1 Level", 0.8, 0, 1, 0.01);
-vco2_level = hslider("Mixer/VCO2 Level", 0.8, 0, 1, 0.01);
-ring_level = hslider("Mixer/RingMod Level", 0.0, 0, 1, 0.01);
+    // Sequencers
+    let rhythmPlaying = false;
+    let melodicPlaying = false;
+    let rhythmTracks = [[], [], [], []]; // 4 tracks x 16 steps
+    let melodicSteps = []; // 16 steps, each storing a "note" (MIDI or freq offset)
+    let currentRhythmStep = 0, currentMelodicStep = 0;
+    let lastRhythmTime = 0, lastMelodicTime = 0;
+    let rhythmTempo = 120, melodicTempo = 120;
 
-osc_mix = vco1_base*vco1_level + vco2_base*vco2_level + ring_mod*ring_level;
+    // Basic scale definitions for quantization
+    const SCALES = {
+      none: [],
+      major: [0, 2, 4, 5, 7, 9, 11],
+      minor: [0, 2, 3, 5, 7, 8, 10]
+    };
 
-// ----------------------------------------------------------------
-// Cassa (Kick)
-// ----------------------------------------------------------------
-cassa_gate = button("Cassa/Gate");
-cassa_pitch = hslider("Cassa/Pitch", 60, 20, 120, 0.1);
-cassa_decay = hslider("Cassa/Decay", 0.2, 0.01, 2.0, 0.01);
-cassa_dist  = hslider("Cassa/Distortion", 0.0, 0.0, 1.0, 0.01);
+    /////////////////////////////////////////
+    // INITIAL SETUP
+    /////////////////////////////////////////
 
-cassa_env = cassa_gate : en.ar(0.0, cassa_decay);
-cassa_out = os.sin(freq(cassa_pitch)) * cassa_env;
-cassa_dist_out = distort(cassa_out, 1.0 + cassa_dist*5.0);
+    window.addEventListener('load', () => {
+      // Build the sequencer grids
+      buildRhythmSequencerUI();
+      buildMelodicSequencerUI();
 
-// ----------------------------------------------------------------
-// Filter (Approx Diode Ladder / 24dB) 
-// ----------------------------------------------------------------
-cutoff = hslider("VCF/Cutoff", 1000, 20, 10000, 1) : si.smoo;
-res    = hslider("VCF/Resonance", 0.6, 0, 1.2, 0.01) : si.smoo;
+      // Attach event handlers to UI controls
+      bindUI();
 
-vcf_out = vcf_wilson(osc_mix, cutoff, res);
-
-// ----------------------------------------------------------------
-// Envelopes & VCA
-// ----------------------------------------------------------------
-gate1 = button("ENV1/Gate"); 
-a1    = hslider("ENV1/Attack", 0.01, 0.001, 2.0, 0.001);
-r1    = hslider("ENV1/Release", 0.2, 0.001, 5.0, 0.001);
-
-gate2 = button("ENV2/Gate");
-a2    = hslider("ENV2/Attack", 0.01, 0.001, 2.0, 0.001);
-r2    = hslider("ENV2/Release", 0.2, 0.001, 5.0, 0.001);
-
-env1 = gate1 : en.ar(a1, r1) : si.smoo;
-env2 = gate2 : en.ar(a2, r2) : si.smoo;
-
-vca1_source = hslider("VCA1 Source", 0, 0, 1, 1); 
-vca1_in = select2(vca1_source, osc_mix, vcf_out);
-vca1_out = vca1_in * env1;
-
-vca2_source = hslider("VCA2 Source", 0, 0, 1, 1); 
-vca2_in = select2(vca2_source, vco1_base, vcf_out);
-vca2_out = vca2_in * env2;
-
-// ----------------------------------------------------------------
-// Mixer
-// ----------------------------------------------------------------
-cassa_mix = hslider("Mixer/Cassa Level", 1, 0, 1, 0.01);
-vca1_mix  = hslider("Mixer/VCA1 Level", 0.8, 0, 1, 0.01);
-vca2_mix  = hslider("Mixer/VCA2 Level", 0.8, 0, 1, 0.01);
-vcf_mix   = hslider("Mixer/VCF Direct Level", 0.0, 0, 1, 0.01);
-
-mixed = cassa_dist_out * cassa_mix 
-      + vca1_out        * vca1_mix
-      + vca2_out        * vca2_mix
-      + vcf_out         * vcf_mix;
-
-// ----------------------------------------------------------------
-// Effects
-// ----------------------------------------------------------------
-dist_drive    = hslider("FX/Distortion Drive", 1.0, 1.0, 20.0, 0.1);
-dist_output   = distort(mixed * dist_drive, 1.0);
-
-delay_time    = hslider("FX/Delay Time (s)", 0.3, 0, 1, 0.01);
-delay_fb      = hslider("FX/Delay Feedback", 0.3, 0, 0.95, 0.01);
-delay_wet     = hslider("FX/Delay Mix", 0.2, 0, 1, 0.01);
-del           = echo(dist_output, delay_time, delay_fb);
-delay_out     = mix(dist_output, del, delay_wet);
-
-rev_size      = hslider("FX/Reverb Size", 0.5, 0, 1, 0.01);
-rev_damp      = hslider("FX/Reverb Damp", 0.5, 0, 1, 0.01);
-rev_wet       = hslider("FX/Reverb Mix", 0.2, 0, 1, 0.01);
-reverb_out    = freeverb(delay_out, rev_size, rev_damp, rev_wet);
-
-bit_depth     = hslider("FX/Bit Depth", 16, 1, 16, 1);
-sample_reduce = hslider("FX/Sample Rate Reduction", 1, 1, 32, 1);
-crusher_out   = ba.bitcrusher(reverb_out, bit_depth, sample_reduce);
-
-gain_master   = hslider("Master/Gain", 0.8, 0, 1, 0.01);
-
-process = (_,_) :> crusher_out * gain_master, crusher_out * gain_master;
-
-// ----------------------------------------------------------------
-// Helpers
-// ----------------------------------------------------------------
-distort(x,drive) = dw.disto(x, drive, 0.5);
-echo(input, time, fb) = _ <: de.delay(time) ~ +( * fb );
-freq(note) = 440.0 * ma.pow(2, (note - 69)/12);
-`;
-
-    let audioCtx = null;
-    let dspNode = null;
-    let isPlaying = false;
-    let currentStep = 0;
-    let tempo = 120;
-    let lastTime = 0;
-    const steps = new Array(16).fill(false); // one track of 16 steps
-
-    // Once the page loads, we set up the UI
-    window.addEventListener("load", () => {
-      // Build step buttons
-      const stepsContainer = document.getElementById("steps");
-      steps.forEach((val, i) => {
-        const stepBtn = document.createElement("button");
-        stepBtn.textContent = (val ? "1" : "0");
-        stepBtn.addEventListener("click", () => {
-          steps[i] = !steps[i];
-          stepBtn.textContent = steps[i] ? "1" : "0";
-          stepBtn.classList.toggle("active", steps[i]);
-        });
-        stepsContainer.appendChild(stepBtn);
-      });
-
-      // Bind UI
-      document.getElementById("playPauseBtn").addEventListener("click", togglePlay);
-      document.getElementById("tempo").addEventListener("change", (e) => {
-        tempo = parseFloat(e.target.value);
-      });
-
-      // Range controls
-      bindParam("vco1Freq", "/LepLoop_SingleFile_DSP/VCO1_Freq");
-      bindParam("vco2Freq", "/LepLoop_SingleFile_DSP/VCO2_Freq");
-      bindParam("cutoff",   "/LepLoop_SingleFile_DSP/VCF_Cutoff");
-      bindParam("resonance","/LepLoop_SingleFile_DSP/VCF_Resonance");
-      bindParam("masterGain","/LepLoop_SingleFile_DSP/Master_Gain");
-      bindParam("distDrive","/LepLoop_SingleFile_DSP/FX_Distortion_Drive");
-      bindParam("delayTime","/LepLoop_SingleFile_DSP/FX_Delay_Time__s_");
-      bindParam("delayFeedback","/LepLoop_SingleFile_DSP/FX_Delay_Feedback");
-      bindParam("delayMix","/LepLoop_SingleFile_DSP/FX_Delay_Mix");
-      bindParam("revSize", "/LepLoop_SingleFile_DSP/FX_Reverb_Size");
-      bindParam("revDamp", "/LepLoop_SingleFile_DSP/FX_Reverb_Damp");
-      bindParam("revMix",  "/LepLoop_SingleFile_DSP/FX_Reverb_Mix");
-      bindParam("bitDepth","/LepLoop_SingleFile_DSP/FX_Bit_Depth");
-      bindParam("sampleRateRedux","/LepLoop_SingleFile_DSP/FX_Sample_Rate_Reduction");
+      // The first user gesture to start AudioContext
+      document.body.addEventListener('click', initAudioContext, { once: true });
     });
 
-    async function initAudio() {
+    function initAudioContext() {
       if (!audioCtx) {
         audioCtx = new AudioContext();
-        await audioCtx.resume(); // iOS Safari needs this
-
-        // Create Faust compiler and compile DSP code on the fly
-        const faust = await Faust.createCompiler(); 
-        const module = await faust.compileDSP(leploopDSP);
-        dspNode = await module.createNode(audioCtx);
-
-        dspNode.connect(audioCtx.destination);
+        setupAudioGraph();
       }
     }
 
-    function togglePlay() {
-      isPlaying = !isPlaying;
-      document.getElementById("playPauseBtn").textContent = isPlaying ? "Pause" : "Play";
+    // Create nodes and wire them up
+    function setupAudioGraph() {
+      // Master Gain
+      masterGainNode = audioCtx.createGain();
+      masterGainNode.connect(audioCtx.destination);
 
-      if (isPlaying) {
-        // Kick off audio init on first play
-        initAudio().then(() => {
-          lastTime = performance.now();
-          stepLoop();
+      // Distortion
+      distNode = audioCtx.createWaveShaper();
+      // We'll update the curve dynamically based on the amount knob
+      updateDistCurve(0);
+
+      // Delay
+      delayNode = audioCtx.createDelay(5.0);
+      delayGain = audioCtx.createGain();
+
+      // Reverb (naive feedback-based)
+      reverbNode = createSimpleReverb(audioCtx);
+      reverbGain = audioCtx.createGain();
+
+      // Bitcrusher
+      bitcrusherNode = createBitcrusherNode(audioCtx);
+
+      // Connect effect chain:
+      // (Synth signal) -> dist -> delay -> reverb -> bitcrusher -> master
+      distNode.connect(delayNode);
+      delayNode.connect(delayGain);
+      delayGain.connect(reverbNode);
+      reverbNode.connect(reverbGain);
+      reverbGain.connect(bitcrusherNode);
+      bitcrusherNode.connect(masterGainNode);
+
+      // Filter
+      filterNode = audioCtx.createBiquadFilter();
+      filterNode.type = 'lowpass';
+      filterNode.frequency.value = 1000;
+      filterNode.Q.value = 1;
+
+      // VCO1
+      osc1 = audioCtx.createOscillator();
+      osc1.type = 'sawtooth';
+      osc1.frequency.value = 220;
+      osc1Gain = audioCtx.createGain();
+      osc1Gain.gain.value = 0.8;
+
+      // VCO2
+      osc2 = audioCtx.createOscillator();
+      osc2.type = 'triangle';
+      osc2.frequency.value = 220;
+      osc2Gain = audioCtx.createGain();
+      osc2Gain.gain.value = 0.8;
+
+      // RING MOD: (osc1 * osc2) approach is done in the time domain with a GainNode
+      ringOscGain = audioCtx.createGain();
+      ringOscGain.gain.value = 1.0;
+      ringGain = audioCtx.createGain();
+      ringGain.gain.value = 0.0; // user can fade in ring mod
+
+      // FM: We can mod osc2’s frequency param using osc1
+      fmGain = audioCtx.createGain();
+      fmGain.gain.value = 0.0;
+      osc1.connect(fmGain); 
+      fmGain.connect(osc2.frequency);
+
+      // Envelope 1 & 2 Gains
+      env1GainNode = audioCtx.createGain();
+      env2GainNode = audioCtx.createGain();
+      env1GainNode.gain.value = 0;
+      env2GainNode.gain.value = 0;
+
+      // LFO
+      lfoOsc = audioCtx.createOscillator();
+      lfoOsc.type = 'sine';
+      lfoOsc.frequency.value = 2;
+      lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.0; 
+      lfoOsc.connect(lfoGain);
+      // We’ll connect lfoGain to filterNode.frequency for demonstration
+      lfoGain.connect(filterNode.frequency);
+
+      // Cassa (kick)
+      cassaOsc = audioCtx.createOscillator();
+      cassaOsc.type = 'sine';
+      cassaOsc.frequency.value = 60; 
+      cassaGain = audioCtx.createGain();
+      cassaGain.gain.value = 0;
+
+      // Wire the VCO signals into ring mod & sums
+      osc1.connect(osc1Gain).connect(filterNode);
+      osc2.connect(osc2Gain).connect(filterNode);
+
+      // ring mod route: multiply signals => ringGain => filter
+      osc1.connect(ringOscGain);
+      osc2.connect(ringOscGain.gain); // effectively multiply
+      ringOscGain.connect(ringGain).connect(filterNode);
+
+      // ENV1 & ENV2 will be used to control amplitude of the filter output (like VCA)
+      const filterOut = audioCtx.createGain();
+      filterNode.connect(filterOut);
+      filterOut.connect(env1GainNode).connect(distNode); // "VCA1"
+
+      // Another path for demonstration: env2 could directly shape something else if you prefer
+      // but for now we’ll just feed the same filter into env2 for layering
+      const filterOut2 = audioCtx.createGain();
+      filterNode.connect(filterOut2);
+      filterOut2.connect(env2GainNode).connect(distNode);
+
+      // Cassa (kick) goes directly to dist as well
+      cassaOsc.connect(cassaGain).connect(distNode);
+
+      // Start the Oscillators
+      osc1.start();
+      osc2.start();
+      lfoOsc.start();
+      cassaOsc.start();
+
+      // Start the envelope processing
+      requestAnimationFrame(envelopeLoop);
+    }
+
+    /////////////////////////////////////////
+    // ENVELOPES + CASSA ENV
+    /////////////////////////////////////////
+
+    // Basic Attack/Release envelope logic in JS
+    function envelopeLoop(timestamp) {
+      // AR for env1
+      const rate = 1 / 60; // approximate frame time
+      if (env1Gate) {
+        // Attack
+        env1Level += rate * (1 / Math.max(env1Attack, 0.001));
+        if (env1Level > 1) env1Level = 1;
+      } else {
+        // Release
+        env1Level -= rate * (1 / Math.max(env1Release, 0.001));
+        if (env1Level < 0) env1Level = 0;
+      }
+      env1GainNode.gain.value = env1Level;
+
+      // AR for env2
+      if (env2Gate) {
+        env2Level += rate * (1 / Math.max(env2Attack, 0.001));
+        if (env2Level > 1) env2Level = 1;
+      } else {
+        env2Level -= rate * (1 / Math.max(env2Release, 0.001));
+        if (env2Level < 0) env2Level = 0;
+      }
+      env2GainNode.gain.value = env2Level;
+
+      // Cassa quick envelope
+      if (cassaGate) {
+        cassaEnvLevel = 1.0; 
+      } else {
+        cassaEnvLevel -= rate * (1 / cassaDecay);
+        if (cassaEnvLevel < 0) cassaEnvLevel = 0;
+      }
+      cassaGain.gain.value = cassaEnvLevel;
+
+      requestAnimationFrame(envelopeLoop);
+    }
+
+    /////////////////////////////////////////
+    // BITCRUSHER NODE
+    /////////////////////////////////////////
+    function createBitcrusherNode(ctx) {
+      // ScriptProcessor is deprecated but simplest for a one-file example
+      const spn = ctx.createScriptProcessor(1024, 2, 2);
+
+      let bitDepth = 16;
+      let sampleReducer = 1;
+      let phase = 0;
+      let phIncrement = 0;
+
+      spn.onaudioprocess = function(e) {
+        const inputL = e.inputBuffer.getChannelData(0);
+        const inputR = e.inputBuffer.getChannelData(1);
+        const outputL = e.outputBuffer.getChannelData(0);
+        const outputR = e.outputBuffer.getChannelData(1);
+
+        // recalc increment
+        phIncrement = sampleReducer;  
+        const step = Math.pow(0.5, bitDepth);
+
+        for (let i = 0; i < inputL.length; i++) {
+          phase += phIncrement;
+          if (phase >= 1.0) {
+            phase -= 1.0;
+            // crush sample
+            const crushedL = step * Math.floor(inputL[i] / step + 0.5);
+            const crushedR = step * Math.floor(inputR[i] / step + 0.5);
+            outputL[i] = crushedL;
+            outputR[i] = crushedR;
+          } else {
+            // hold
+            outputL[i] = outputL[i-1] || 0;
+            outputR[i] = outputR[i-1] || 0;
+          }
+        }
+      };
+
+      // Expose a way to update parameters
+      spn.updateParams = function(bd, sr) {
+        bitDepth = bd;
+        sampleReducer = sr; // integer for simple downsampling factor
+      };
+      return spn;
+    }
+
+    /////////////////////////////////////////
+    // SIMPLE REVERB (SCHROEDER ALLPASS)
+    /////////////////////////////////////////
+    function createSimpleReverb(context) {
+      // We create a little chain of allpass filters and a feedback gain
+      const input = context.createGain();
+      const ap1 = context.createBiquadFilter();
+      ap1.type = 'allpass';
+      ap1.frequency.value = 500;
+      const ap2 = context.createBiquadFilter();
+      ap2.type = 'allpass';
+      ap2.frequency.value = 1500;
+      const ap3 = context.createBiquadFilter();
+      ap3.type = 'allpass';
+      ap3.frequency.value = 2000;
+
+      const feedback = context.createGain();
+      feedback.gain.value = 0.7;
+
+      // input -> ap1 -> ap2 -> ap3 -> feedback -> (back to ap1)
+      input.connect(ap1);
+      ap1.connect(ap2);
+      ap2.connect(ap3);
+      ap3.connect(feedback);
+      feedback.connect(ap1);
+
+      return input;
+    }
+
+    /////////////////////////////////////////
+    // DISTORTION CURVE
+    /////////////////////////////////////////
+    function updateDistCurve(amount) {
+      // Example: a simple curve from -1..1 with mild shaping
+      const n = 256;
+      const curve = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        const x = (i / (n - 1)) * 2 - 1;
+        curve[i] = ((3 + amount * 10) * x * 20 * Math.PI / 180) / 
+                   (Math.PI + amount * Math.abs(x));
+      }
+      distNode.curve = curve;
+      distNode.oversample = '4x';
+    }
+
+    /////////////////////////////////////////
+    // SEQUENCER UI
+    /////////////////////////////////////////
+
+    function buildRhythmSequencerUI() {
+      // Each track is an array of 16 booleans
+      for (let t = 0; t < 4; t++) {
+        rhythmTracks[t] = new Array(16).fill(false);
+      }
+
+      const container = document.getElementById('rhythmContainer');
+      container.innerHTML = '';
+      for (let t = 0; t < 4; t++) {
+        const row = document.createElement('div');
+        row.classList.add('seq-grid');
+        for (let step = 0; step < 16; step++) {
+          const btn = document.createElement('button');
+          btn.textContent = '0';
+          btn.addEventListener('click', () => {
+            rhythmTracks[t][step] = !rhythmTracks[t][step];
+            btn.textContent = rhythmTracks[t][step] ? '1' : '0';
+            btn.classList.toggle('active', rhythmTracks[t][step]);
+          });
+          row.appendChild(btn);
+        }
+        container.appendChild(row);
+      }
+    }
+
+    function buildMelodicSequencerUI() {
+      // 16 steps, each a "note offset" from some base
+      melodicSteps = new Array(16).fill(0);
+
+      const container = document.getElementById('melodicContainer');
+      container.classList.add('seq-grid');
+      container.innerHTML = '';
+      for (let i = 0; i < 16; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = '0';
+        btn.addEventListener('click', () => {
+          // cycle among 0..12 semitones
+          melodicSteps[i] = (melodicSteps[i] + 2) % 24; 
+          // just increment by 2 for fun
+          btn.textContent = melodicSteps[i].toString();
+          btn.classList.toggle('active', melodicSteps[i] !== 0);
         });
+        container.appendChild(btn);
       }
     }
 
-    function stepLoop() {
-      if (!isPlaying) return;
+    /////////////////////////////////////////
+    // RHYTHM SEQUENCER LOOP
+    /////////////////////////////////////////
+
+    function rhythmStepLoop() {
+      if (!rhythmPlaying) return;
       const now = performance.now();
-      const dt = now - lastTime;
-      // 16th note duration in ms
-      const stepDurationMs = (60_000 / tempo) / 4;
-      if (dt >= stepDurationMs) {
-        currentStep = (currentStep + 1) % 16;
-        lastTime = now;
-        // If step is active, send short gate to cassa + ENV1
-        if (steps[currentStep]) {
-          setParamValue("/LepLoop_SingleFile_DSP/Cassa_Gate", 1);
-          setParamValue("/LepLoop_SingleFile_DSP/ENV1_Gate", 1);
-          // short trigger
-          setTimeout(() => {
-            setParamValue("/LepLoop_SingleFile_DSP/Cassa_Gate", 0);
-            setParamValue("/LepLoop_SingleFile_DSP/ENV1_Gate", 0);
-          }, 50);
-        } else {
-          setParamValue("/LepLoop_SingleFile_DSP/Cassa_Gate", 0);
-          setParamValue("/LepLoop_SingleFile_DSP/ENV1_Gate", 0);
+      const stepDurationMs = (60000 / rhythmTempo) / 4; // 16th note
+
+      if (now - lastRhythmTime >= stepDurationMs) {
+        lastRhythmTime = now;
+        currentRhythmStep = (currentRhythmStep + 1) % 16;
+        // For each track, if active => trigger something
+        for (let t = 0; t < 4; t++) {
+          if (rhythmTracks[t][currentRhythmStep]) {
+            triggerRhythmTrack(t);
+          }
         }
       }
-      requestAnimationFrame(stepLoop);
+      requestAnimationFrame(rhythmStepLoop);
     }
 
-    function bindParam(elementId, faustPath) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      el.addEventListener("input", () => {
-        const val = parseFloat(el.value);
-        setParamValue(faustPath, val);
-      });
-    }
-
-    function setParamValue(path, value) {
-      if (!dspNode) return;
-      try {
-        dspNode.setParamValue(path, value);
-      } catch (e) {
-        // ignore or log
-        // console.log("Param error:", path, e);
+    function triggerRhythmTrack(trackIndex) {
+      // For simplicity, track0 triggers Cassa, track1 triggers ENV1, etc.
+      // You can expand or map each track to different drums/instruments
+      switch (trackIndex) {
+        case 0: 
+          // cassa
+          cassaGate = true;
+          setTimeout(() => cassaGate = false, 50);
+          break;
+        case 1:
+          // ENV1 trigger
+          env1Gate = true;
+          setTimeout(() => env1Gate = false, 50);
+          break;
+        case 2:
+          // ENV2 trigger
+          env2Gate = true;
+          setTimeout(() => env2Gate = false, 50);
+          break;
+        case 3:
+          // Another cassa or something
+          cassaGate = true;
+          setTimeout(() => cassaGate = false, 50);
+          break;
       }
+    }
+
+    /////////////////////////////////////////
+    // MELODIC SEQUENCER LOOP
+    /////////////////////////////////////////
+
+    function melodicStepLoop() {
+      if (!melodicPlaying) return;
+      const now = performance.now();
+      const stepDurationMs = (60000 / melodicTempo) / 4; // 16th note
+
+      if (now - lastMelodicTime >= stepDurationMs) {
+        lastMelodicTime = now;
+        currentMelodicStep = (currentMelodicStep + 1) % 16;
+        const semitoneOffset = melodicSteps[currentMelodicStep];
+        if (semitoneOffset !== 0) {
+          // Trigger note on VCO1 (for example). You can pick a base note or pitch
+          const baseMidiNote = 60; // Middle C
+          const scaleType = document.getElementById('scaleSelect').value;
+          const scaledNote = scaleType === 'none'
+            ? baseMidiNote + semitoneOffset
+            : quantizeMidiNote(baseMidiNote + semitoneOffset, scaleType);
+          
+          const freq = midiToFreq(scaledNote);
+          osc1.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+          // Envelope trigger
+          env1Gate = true;
+          setTimeout(() => env1Gate = false, 50);
+        }
+      }
+      requestAnimationFrame(melodicStepLoop);
+    }
+
+    function quantizeMidiNote(midiNote, scaleName) {
+      // Takes a midi note and snaps it to the chosen scale in the nearest octave
+      const scale = SCALES[scaleName];
+      if (!scale || scale.length === 0) {
+        return midiNote; // no quant
+      }
+      // E.g. a note 60 => base, remainder => which scale degree
+      const baseOct = Math.floor(midiNote / 12) * 12;
+      const noteInOct = midiNote % 12;
+      // find nearest in scale
+      let closest = scale[0];
+      let minDiff = 999;
+      for (let s of scale) {
+        const diff = Math.abs(s - noteInOct);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = s;
+        }
+      }
+      return baseOct + closest;
+    }
+
+    function midiToFreq(midi) {
+      return 440 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    /////////////////////////////////////////
+    // BIND UI
+    /////////////////////////////////////////
+
+    function bindUI() {
+      // Rhythm
+      document.getElementById('rhythmPlayBtn').addEventListener('click', () => {
+        rhythmPlaying = !rhythmPlaying;
+        if (rhythmPlaying) {
+          lastRhythmTime = performance.now();
+          requestAnimationFrame(rhythmStepLoop);
+        }
+        document.getElementById('rhythmPlayBtn').textContent = 
+          rhythmPlaying ? 'Pause Rhythm' : 'Play Rhythm';
+      });
+      document.getElementById('rhythmTempo').addEventListener('change', (e) => {
+        rhythmTempo = parseFloat(e.target.value);
+      });
+
+      // Melodic
+      document.getElementById('melodicPlayBtn').addEventListener('click', () => {
+        melodicPlaying = !melodicPlaying;
+        if (melodicPlaying) {
+          lastMelodicTime = performance.now();
+          requestAnimationFrame(melodicStepLoop);
+        }
+        document.getElementById('melodicPlayBtn').textContent =
+          melodicPlaying ? 'Pause Melodic' : 'Play Melodic';
+      });
+      document.getElementById('melodicTempo').addEventListener('change', (e) => {
+        melodicTempo = parseFloat(e.target.value);
+      });
+
+      // Basic param bindings:
+
+      // VCO1
+      document.getElementById('vco1Freq').addEventListener('input', (e) => {
+        if (osc1) osc1.frequency.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
+      });
+      document.getElementById('vco1Wave').addEventListener('change', (e) => {
+        if (osc1) osc1.type = e.target.value;
+      });
+      document.getElementById('vco1Gain').addEventListener('input', (e) => {
+        if (osc1Gain) osc1Gain.gain.value = parseFloat(e.target.value);
+      });
+
+      // VCO2
+      document.getElementById('vco2Freq').addEventListener('input', (e) => {
+        if (osc2) osc2.frequency.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
+      });
+      document.getElementById('vco2Wave').addEventListener('change', (e) => {
+        if (osc2) osc2.type = e.target.value;
+      });
+      document.getElementById('vco2Gain').addEventListener('input', (e) => {
+        if (osc2Gain) osc2Gain.gain.value = parseFloat(e.target.value);
+      });
+
+      // Ring Mod
+      document.getElementById('ringLevel').addEventListener('input', (e) => {
+        if (ringGain) ringGain.gain.value = parseFloat(e.target.value);
+      });
+
+      // FM
+      document.getElementById('fmAmount').addEventListener('input', (e) => {
+        if (fmGain) fmGain.gain.value = parseFloat(e.target.value);
+      });
+
+      // Filter
+      document.getElementById('cutoff').addEventListener('input', (e) => {
+        if (filterNode) filterNode.frequency.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
+      });
+      document.getElementById('resonance').addEventListener('input', (e) => {
+        if (filterNode) filterNode.Q.value = parseFloat(e.target.value);
+      });
+
+      // Env1 & Env2
+      document.getElementById('env1Attack').addEventListener('input', (e) => {
+        env1Attack = parseFloat(e.target.value);
+      });
+      document.getElementById('env1Release').addEventListener('input', (e) => {
+        env1Release = parseFloat(e.target.value);
+      });
+      document.getElementById('env2Attack').addEventListener('input', (e) => {
+        env2Attack = parseFloat(e.target.value);
+      });
+      document.getElementById('env2Release').addEventListener('input', (e) => {
+        env2Release = parseFloat(e.target.value);
+      });
+
+      // LFO
+      document.getElementById('lfoFreq').addEventListener('input', (e) => {
+        if (lfoOsc) lfoOsc.frequency.value = parseFloat(e.target.value);
+      });
+      document.getElementById('lfoDepth').addEventListener('input', (e) => {
+        if (lfoGain) lfoGain.gain.value = parseFloat(e.target.value);
+      });
+
+      // Cassa
+      document.getElementById('cassaTune').addEventListener('input', (e) => {
+        if (cassaOsc) cassaOsc.frequency.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
+      });
+      document.getElementById('cassaDecay').addEventListener('input', (e) => {
+        cassaDecay = parseFloat(e.target.value);
+      });
+      document.getElementById('cassaDist').addEventListener('input', (e) => {
+        // A quick approach: increase gain on the cassaOsc or a waveshaper?
+        // For simplicity, we’ll just make cassaOsc amplitude bigger
+        if (cassaGain) cassaGain.gain.value = cassaEnvLevel * (1 + parseFloat(e.target.value)*5);
+      });
+
+      // Effects
+      document.getElementById('distAmount').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        updateDistCurve(val);
+      });
+
+      document.getElementById('delayTime').addEventListener('input', (e) => {
+        if (delayNode) delayNode.delayTime.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
+      });
+      document.getElementById('delayFeedback').addEventListener('input', (e) => {
+        if (delayGain) delayGain.gain.value = parseFloat(e.target.value);
+      });
+      document.getElementById('delayMix').addEventListener('input', (e) => {
+        // Simple approach: mix is done in how we connect the delay’s input.
+        const dry = 1 - parseFloat(e.target.value);
+        // The “distNode -> delayNode” is always fed. We can just reduce distNode output -> master
+        // But we have a single chain here, so simpler approach is to set the “delayNode” wet indirectly
+        // We’ll skip a separate dry/wet node for brevity. Instead, we’ll adjust the final “delayGain”?
+        // Actually we have no separate dry path. For a real project, you'd do parallel routes.
+        // We'll partially hack it by adjusting the gain on the path after the delay.
+        if (delayGain) delayGain.gain.value = parseFloat(e.target.value);
+      });
+
+      document.getElementById('reverbMix').addEventListener('input', (e) => {
+        if (reverbGain) reverbGain.gain.value = parseFloat(e.target.value);
+      });
+
+      document.getElementById('bitDepth').addEventListener('input', (e) => {
+        updateBitcrusher();
+      });
+      document.getElementById('sampleRateRedux').addEventListener('input', (e) => {
+        updateBitcrusher();
+      });
+
+      function updateBitcrusher() {
+        const bd = parseInt(document.getElementById('bitDepth').value);
+        const sr = parseInt(document.getElementById('sampleRateRedux').value);
+        if (bitcrusherNode && bitcrusherNode.updateParams) {
+          bitcrusherNode.updateParams(bd, sr);
+        }
+      }
+
+      document.getElementById('masterGain').addEventListener('input', (e) => {
+        if (masterGainNode) masterGainNode.gain.value = parseFloat(e.target.value);
+      });
     }
   </script>
 </body>
