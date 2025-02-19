@@ -2,13 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>LepLoop V3 Expanded Clone (Web Audio)</title>
+  <title>LepLoop V3 Expanded Clone with Random Morphing</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
-      background: #222;
-      color: #eee;
+      margin: 0; padding: 0;
+      background: #222; color: #eee;
       font-family: sans-serif;
     }
     h1, h2, h3 {
@@ -21,91 +19,89 @@
       padding: 1rem;
     }
     .panel {
-      background: #333;
-      padding: 1rem;
+      background: #333; padding: 1rem;
       border-radius: 8px;
       margin-bottom: 1rem;
     }
-    .panel > div {
-      margin-bottom: 1rem;
-    }
     label {
-      display: inline-block;
-      width: 180px;
-      margin-right: 1rem;
-      vertical-align: middle;
+      display: inline-block; width: 180px; margin-right: 1rem;
     }
     input[type="range"], select {
-      width: 200px;
-      vertical-align: middle;
+      width: 180px; vertical-align: middle;
     }
+    .row { margin-bottom: 0.7rem; }
     .seq-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
-      gap: 4px;
-      margin-bottom: 1rem;
+      display: grid; grid-template-columns: repeat(16, 30px);
+      gap: 4px; margin-bottom: 1rem;
     }
     .seq-grid button {
-      width: 30px;
-      height: 30px;
-      background: #555;
-      color: #fff;
-      border: 1px solid #999;
-      border-radius: 4px;
-      cursor: pointer;
-      outline: none;
+      width: 30px; height: 30px; background: #555;
+      color: #fff; border: 1px solid #999; border-radius: 4px;
+      cursor: pointer; outline: none;
     }
-    .active {
-      background: #0b3 !important;
-    }
+    .active { background: #0b3 !important; }
     .btn {
-      background: #555;
-      color: #fff;
-      border: 1px solid #999;
-      border-radius: 4px;
-      padding: 0.4rem 0.8rem;
-      cursor: pointer;
-      outline: none;
-      margin-right: 1rem;
+      background: #555; color: #fff; border: 1px solid #999;
+      border-radius: 4px; padding: 0.4rem 0.8rem; cursor: pointer; outline: none;
+      margin-right: 0.5rem;
     }
-    .btn:hover {
-      background: #777;
+    .btn:hover { background: #777; }
+    .random-panel {
+      border-top: 1px solid #666; margin-top: 1rem; padding-top: 1rem;
     }
   </style>
 </head>
 <body>
-  <h1>LepLoop V3 Expanded Clone (Web Audio)</h1>
+  <h1>LepLoop V3 Clone w/ Percussion, Plucky Synth, Step Length, Random Morph</h1>
   <div id="app">
-    <!-- GLOBAL CONTROLS -->
+    <!-- GLOBAL PLAY/PAUSE & TEMPO -->
     <div class="panel">
-      <h2>Global Play/Pause</h2>
+      <h2>Global Control</h2>
       <button class="btn" id="globalPlayBtn">Play All</button>
-      <label>Global Tempo (BPM)
-        <input type="number" id="globalTempo" value="120" style="width:60px"/>
-      </label>
+      <label>Global Tempo (BPM) <input type="number" id="globalTempo" value="120" style="width:60px"/></label>
+
+      <!-- GLOBAL Randomization & Crossfade -->
+      <div class="random-panel">
+        <h3>Global Randomization</h3>
+        <button class="btn" id="globalRandomizeBtn">Randomize All</button>
+        <label>Global Morph</label>
+        <input type="range" id="globalMorphSlider" min="0" max="1" step="0.01" value="0">
+      </div>
     </div>
 
-    <!-- RHYTHM PANEL -->
+    <!-- RHYTHM SEQUENCER -->
     <div class="panel">
-      <h2>Rhythm Sequencer</h2>
-      <p>Four tracks (0=Cassa, 1=Perc1, 2=Perc2, 3=Perc3). 16 steps each.</p>
+      <h2>Rhythm Sequencer (4 Tracks, each 1–16 steps)</h2>
+      <p>Track0 = Cassa; Track1..3 = flexible percussion.</p>
+      <div class="row">
+        <label>Track 0 Length</label><input type="number" id="rhythmLength0" value="16" min="1" max="16" style="width:50px"/>
+      </div>
+      <div class="row">
+        <label>Track 1 Length</label><input type="number" id="rhythmLength1" value="16" min="1" max="16" style="width:50px"/>
+      </div>
+      <div class="row">
+        <label>Track 2 Length</label><input type="number" id="rhythmLength2" value="16" min="1" max="16" style="width:50px"/>
+      </div>
+      <div class="row">
+        <label>Track 3 Length</label><input type="number" id="rhythmLength3" value="16" min="1" max="16" style="width:50px"/>
+      </div>
       <div id="rhythmContainer"></div>
     </div>
 
-    <!-- MELODIC PANEL 1 -->
+    <!-- MELODIC SEQ 1 -->
     <div class="panel">
-      <h2>Melodic Synth 1 (Classic VCO / Filter)</h2>
-      <div>
-        <label for="melodic1Enabled">Enable Sequence</label>
-        <input type="checkbox" id="melodic1Enabled" checked />
+      <h2>Melodic Synth 1 Sequencer</h2>
+      <div class="row">
+        <label>Enable Sequence</label><input type="checkbox" id="melodic1Enabled" checked/>
       </div>
-      <p>16 steps. Each step is a semitone offset from base note. Optionally quantize to major/minor scale.</p>
-      <div>
-        <label>Base Note (MIDI)</label>
-        <input type="number" id="melodic1BaseNote" value="60" style="width:60px"/>
+      <div class="row">
+        <label>Step Length</label><input type="number" id="melodic1Length" value="16" min="1" max="16" style="width:50px"/>
       </div>
-      <div>
-        <label for="melodic1Scale">Scale Quantization</label>
+      <div class="row">
+        <label>Base Note (MIDI)</label><input type="number" id="melodic1BaseNote" value="60" style="width:60px"/>
+      </div>
+      <div class="row">
+        <label>Scale</label>
         <select id="melodic1Scale">
           <option value="none">None</option>
           <option value="major">Major</option>
@@ -115,20 +111,20 @@
       <div id="melodic1Seq" class="seq-grid"></div>
     </div>
 
-    <!-- MELODIC PANEL 2 (Plucky / Formant-ish) -->
+    <!-- MELODIC SEQ 2 -->
     <div class="panel">
-      <h2>Melodic Synth 2 (Pluck / Formant)</h2>
-      <div>
-        <label for="melodic2Enabled">Enable Sequence</label>
-        <input type="checkbox" id="melodic2Enabled" />
+      <h2>Melodic Synth 2 Sequencer (Plucky/Formant)</h2>
+      <div class="row">
+        <label>Enable Sequence</label><input type="checkbox" id="melodic2Enabled"/>
       </div>
-      <p>16 steps. “Pluckier” oscillator with bandpass formant approach.</p>
-      <div>
-        <label>Base Note (MIDI)</label>
-        <input type="number" id="melodic2BaseNote" value="48" style="width:60px"/>
+      <div class="row">
+        <label>Step Length</label><input type="number" id="melodic2Length" value="16" min="1" max="16" style="width:50px"/>
       </div>
-      <div>
-        <label for="melodic2Scale">Scale Quantization</label>
+      <div class="row">
+        <label>Base Note (MIDI)</label><input type="number" id="melodic2BaseNote" value="48" style="width:60px"/>
+      </div>
+      <div class="row">
+        <label>Scale</label>
         <select id="melodic2Scale">
           <option value="none">None</option>
           <option value="major">Major</option>
@@ -138,14 +134,13 @@
       <div id="melodic2Seq" class="seq-grid"></div>
     </div>
 
-    <!-- SYNTH & EFFECTS CONTROLS -->
-    <div class="panel" id="synth-panel">
-      <h2>Classic Synth 1 Controls</h2>
-      <div>
-        <label for="vco1Freq">VCO1 Frequency</label>
-        <input type="range" id="vco1Freq" min="20" max="2000" step="1" value="220">
+    <!-- SYNTH 1 CONTROLS -->
+    <div class="panel">
+      <h2>Synth 1 (Classic 2 VCO) Controls</h2>
+      <div class="row">
+        <label for="vco1Freq">VCO1 Frequency</label><input type="range" id="vco1Freq" min="20" max="2000" step="1" value="220">
       </div>
-      <div>
+      <div class="row">
         <label for="vco1Wave">VCO1 Waveform</label>
         <select id="vco1Wave">
           <option value="sine">Sine</option>
@@ -154,21 +149,18 @@
           <option value="triangle">Triangle</option>
         </select>
       </div>
-      <div>
-        <label for="vco1Gain">VCO1 Gain</label>
-        <input type="range" id="vco1Gain" min="0" max="1" step="0.01" value="0.8">
+      <div class="row">
+        <label for="vco1Gain">VCO1 Gain</label><input type="range" id="vco1Gain" min="0" max="1" step="0.01" value="0.8">
       </div>
-      <div>
-        <label for="fmAmount">FM Amount (VCO1→VCO2)</label>
-        <input type="range" id="fmAmount" min="0" max="400" step="1" value="0">
+      <div class="row">
+        <label for="fmAmount">FM Amount (VCO1 → VCO2)</label><input type="range" id="fmAmount" min="0" max="400" step="1" value="0">
       </div>
       <hr/>
       <h3>VCO2</h3>
-      <div>
-        <label for="vco2Freq">VCO2 Frequency</label>
-        <input type="range" id="vco2Freq" min="20" max="2000" step="1" value="220">
+      <div class="row">
+        <label for="vco2Freq">VCO2 Frequency</label><input type="range" id="vco2Freq" min="20" max="2000" step="1" value="220">
       </div>
-      <div>
+      <div class="row">
         <label for="vco2Wave">VCO2 Waveform</label>
         <select id="vco2Wave">
           <option value="sine">Sine</option>
@@ -177,261 +169,247 @@
           <option value="triangle" selected>Triangle</option>
         </select>
       </div>
-      <div>
-        <label for="vco2Gain">VCO2 Gain</label>
-        <input type="range" id="vco2Gain" min="0" max="1" step="0.01" value="0.8">
+      <div class="row">
+        <label for="vco2Gain">VCO2 Gain</label><input type="range" id="vco2Gain" min="0" max="1" step="0.01" value="0.8">
       </div>
-      <div>
-        <label for="ringLevel">Ring Mod Level</label>
-        <input type="range" id="ringLevel" min="0" max="1" step="0.01" value="0">
+      <div class="row">
+        <label for="ringLevel">Ring Mod Level</label><input type="range" id="ringLevel" min="0" max="1" step="0.01" value="0">
       </div>
 
       <hr />
-      <h3>Filter (Synth 1)</h3>
-      <div>
-        <label for="cutoff">Cutoff</label>
-        <input type="range" id="cutoff" min="20" max="10000" step="10" value="1000">
+      <h3>Filter & Envelopes</h3>
+      <div class="row">
+        <label for="cutoff">Cutoff</label><input type="range" id="cutoff" min="20" max="10000" step="10" value="1000">
       </div>
-      <div>
-        <label for="resonance">Resonance</label>
-        <input type="range" id="resonance" min="1" max="20" step="0.1" value="1">
+      <div class="row">
+        <label for="resonance">Resonance</label><input type="range" id="resonance" min="1" max="20" step="0.1" value="1">
+      </div>
+      <div class="row">
+        <label for="env1Attack">ENV1 Attack</label><input type="range" id="env1Attack" min="0" max="2" step="0.01" value="0.01">
+      </div>
+      <div class="row">
+        <label for="env1Release">ENV1 Release</label><input type="range" id="env1Release" min="0.01" max="5" step="0.01" value="0.2">
+      </div>
+      <div class="row">
+        <label for="env2Attack">ENV2 Attack</label><input type="range" id="env2Attack" min="0" max="2" step="0.01" value="0.01">
+      </div>
+      <div class="row">
+        <label for="env2Release">ENV2 Release</label><input type="range" id="env2Release" min="0.01" max="5" step="0.01" value="0.2">
+      </div>
+      <div class="row">
+        <label for="lfoFreq">LFO Frequency</label><input type="range" id="lfoFreq" min="0.1" max="20" step="0.1" value="2">
+      </div>
+      <div class="row">
+        <label for="lfoDepth">LFO Depth (Filter)</label><input type="range" id="lfoDepth" min="0" max="2000" step="1" value="0">
       </div>
 
-      <hr/>
-      <h3>Envelopes & LFO (Synth 1)</h3>
-      <div>
-        <label for="env1Attack">ENV1 Attack</label>
-        <input type="range" id="env1Attack" min="0" max="2" step="0.01" value="0.01">
-      </div>
-      <div>
-        <label for="env1Release">ENV1 Release</label>
-        <input type="range" id="env1Release" min="0.01" max="5" step="0.01" value="0.2">
-      </div>
-      <div>
-        <label for="env2Attack">ENV2 Attack</label>
-        <input type="range" id="env2Attack" min="0" max="2" step="0.01" value="0.01">
-      </div>
-      <div>
-        <label for="env2Release">ENV2 Release</label>
-        <input type="range" id="env2Release" min="0.01" max="5" step="0.01" value="0.2">
-      </div>
-      <div>
-        <label for="lfoFreq">LFO Frequency</label>
-        <input type="range" id="lfoFreq" min="0.1" max="20" step="0.1" value="2">
-      </div>
-      <div>
-        <label for="lfoDepth">LFO Depth (Filter)</label>
-        <input type="range" id="lfoDepth" min="0" max="2000" step="1" value="0">
+      <!-- Random/Crossfade for Synth1 -->
+      <div class="random-panel">
+        <h3>Synth1 Randomize</h3>
+        <button class="btn" id="randomizeSynth1Btn">Randomize Synth1</button>
+        <label>Morph</label><input type="range" id="morphSynth1" min="0" max="1" step="0.01" value="0">
       </div>
     </div>
 
     <!-- PERCUSSION CONTROLS -->
     <div class="panel">
-      <h2>Percussion Engine</h2>
-      <p>Flexible drum voices for tracks 1,2,3 (Cassa is track 0, see below for cassa params)</p>
-      <!-- Simple example: let’s just expose a few params for each track’s voice. -->
-      <div>
-        <label for="perc1Tune">Perc1 Tune</label>
-        <input type="range" id="perc1Tune" min="50" max="200" step="1" value="100">
+      <h2>Cassa + Percussion</h2>
+      <h3>Cassa (Track 0)</h3>
+      <div class="row">
+        <label for="cassaTune">Cassa Pitch</label><input type="range" id="cassaTune" min="30" max="100" step="1" value="60">
       </div>
-      <div>
-        <label for="perc1Noise">Perc1 Noise Mix</label>
-        <input type="range" id="perc1Noise" min="0" max="1" step="0.01" value="0.3">
+      <div class="row">
+        <label for="cassaDecay">Cassa Decay</label><input type="range" id="cassaDecay" min="0.01" max="2" step="0.01" value="0.3">
       </div>
-      <div>
-        <label for="perc1Decay">Perc1 Decay</label>
-        <input type="range" id="perc1Decay" min="0.01" max="2" step="0.01" value="0.3">
+      <div class="row">
+        <label for="cassaGainCtrl">Cassa Volume</label><input type="range" id="cassaGainCtrl" min="0" max="2" step="0.01" value="1">
       </div>
-
-      <div>
-        <label for="perc2Tune">Perc2 Tune</label>
-        <input type="range" id="perc2Tune" min="50" max="400" step="1" value="150">
-      </div>
-      <div>
-        <label for="perc2Noise">Perc2 Noise Mix</label>
-        <input type="range" id="perc2Noise" min="0" max="1" step="0.01" value="0.5">
-      </div>
-      <div>
-        <label for="perc2Decay">Perc2 Decay</label>
-        <input type="range" id="perc2Decay" min="0.01" max="2" step="0.01" value="0.2">
+      <div class="random-panel">
+        <h4>Cassa Randomize</h4>
+        <button class="btn" id="randomizeCassaBtn">Randomize Cassa</button>
+        <label>Morph</label><input type="range" id="morphCassa" min="0" max="1" step="0.01" value="0">
       </div>
 
-      <div>
-        <label for="perc3Tune">Perc3 Tune</label>
-        <input type="range" id="perc3Tune" min="100" max="600" step="1" value="300">
+      <hr/>
+      <h3>Perc1 (Track1), Perc2 (Track2), Perc3 (Track3)</h3>
+      <p>Each has an oscillator + noise + filter + short envelope</p>
+      <div class="row">
+        <label for="perc1Tune">Perc1 Tune</label><input type="range" id="perc1Tune" min="50" max="400" step="1" value="100">
       </div>
-      <div>
-        <label for="perc3Noise">Perc3 Noise Mix</label>
-        <input type="range" id="perc3Noise" min="0" max="1" step="0.01" value="0.8">
+      <div class="row">
+        <label for="perc1Noise">Perc1 Noise Mix</label><input type="range" id="perc1Noise" min="0" max="1" step="0.01" value="0.3">
       </div>
-      <div>
-        <label for="perc3Decay">Perc3 Decay</label>
-        <input type="range" id="perc3Decay" min="0.01" max="2" step="0.01" value="0.15">
+      <div class="row">
+        <label for="perc1Decay">Perc1 Decay</label><input type="range" id="perc1Decay" min="0.01" max="2" step="0.01" value="0.3">
+      </div>
+      <div class="random-panel">
+        <h4>Perc1 Randomize</h4>
+        <button class="btn" id="randomizePerc1Btn">Randomize Perc1</button>
+        <label>Morph</label><input type="range" id="morphPerc1" min="0" max="1" step="0.01" value="0">
+      </div>
+
+      <div class="row">
+        <label for="perc2Tune">Perc2 Tune</label><input type="range" id="perc2Tune" min="50" max="600" step="1" value="150">
+      </div>
+      <div class="row">
+        <label for="perc2Noise">Perc2 Noise Mix</label><input type="range" id="perc2Noise" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="row">
+        <label for="perc2Decay">Perc2 Decay</label><input type="range" id="perc2Decay" min="0.01" max="2" step="0.01" value="0.2">
+      </div>
+      <div class="random-panel">
+        <h4>Perc2 Randomize</h4>
+        <button class="btn" id="randomizePerc2Btn">Randomize Perc2</button>
+        <label>Morph</label><input type="range" id="morphPerc2" min="0" max="1" step="0.01" value="0">
+      </div>
+
+      <div class="row">
+        <label for="perc3Tune">Perc3 Tune</label><input type="range" id="perc3Tune" min="50" max="1200" step="1" value="300">
+      </div>
+      <div class="row">
+        <label for="perc3Noise">Perc3 Noise Mix</label><input type="range" id="perc3Noise" min="0" max="1" step="0.01" value="0.8">
+      </div>
+      <div class="row">
+        <label for="perc3Decay">Perc3 Decay</label><input type="range" id="perc3Decay" min="0.01" max="2" step="0.01" value="0.15">
+      </div>
+      <div class="random-panel">
+        <h4>Perc3 Randomize</h4>
+        <button class="btn" id="randomizePerc3Btn">Randomize Perc3</button>
+        <label>Morph</label><input type="range" id="morphPerc3" min="0" max="1" step="0.01" value="0">
       </div>
     </div>
 
-    <!-- CASSA -->
+    <!-- SYNTH2 (PLUCKY) -->
     <div class="panel">
-      <h2>Cassa (Bass Drum)</h2>
-      <div>
-        <label for="cassaTune">Cassa Pitch</label>
-        <input type="range" id="cassaTune" min="30" max="100" step="1" value="60">
+      <h2>Synth2 (Pluck / Formant) Controls</h2>
+      <div class="row">
+        <label for="synth2FormantFreq">Formant Freq</label><input type="range" id="synth2FormantFreq" min="100" max="3000" step="1" value="1200">
       </div>
-      <div>
-        <label for="cassaDecay">Cassa Decay</label>
-        <input type="range" id="cassaDecay" min="0.01" max="2" step="0.01" value="0.3">
+      <div class="row">
+        <label for="synth2FormantQ">Formant Q</label><input type="range" id="synth2FormantQ" min="1" max="20" step="0.1" value="10">
       </div>
-      <div>
-        <label for="cassaDist">Cassa Distortion</label>
-        <input type="range" id="cassaDist" min="0" max="1" step="0.01" value="0.2">
+      <div class="row">
+        <label for="synth2EnvAttack">Pluck Attack</label><input type="range" id="synth2EnvAttack" min="0" max="1" step="0.01" value="0.01">
       </div>
-    </div>
-
-    <!-- PLUCK / FORMANT (Synth2) CONTROLS -->
-    <div class="panel">
-      <h2>Synth 2 (Pluck/Formant) Controls</h2>
-      <p>This oscillator has a bandpass filter with an envelope for a “plucky” or formant-like sound.</p>
-      <div>
-        <label for="synth2FormantFreq">Formant Freq</label>
-        <input type="range" id="synth2FormantFreq" min="100" max="2500" step="1" value="800">
+      <div class="row">
+        <label for="synth2EnvDecay">Pluck Decay</label><input type="range" id="synth2EnvDecay" min="0.01" max="3" step="0.01" value="0.5">
       </div>
-      <div>
-        <label for="synth2FormantQ">Formant Q</label>
-        <input type="range" id="synth2FormantQ" min="1" max="20" step="0.1" value="10">
+      <div class="row">
+        <label for="synth2Volume">Synth2 Volume</label><input type="range" id="synth2Volume" min="0" max="2" step="0.01" value="1">
       </div>
-      <div>
-        <label for="synth2EnvAttack">Pluck Attack</label>
-        <input type="range" id="synth2EnvAttack" min="0" max="1" step="0.01" value="0.01">
-      </div>
-      <div>
-        <label for="synth2EnvDecay">Pluck Decay</label>
-        <input type="range" id="synth2EnvDecay" min="0.01" max="3" step="0.01" value="0.5">
+      <div class="random-panel">
+        <h3>Synth2 Randomize</h3>
+        <button class="btn" id="randomizeSynth2Btn">Randomize Synth2</button>
+        <label>Morph</label><input type="range" id="morphSynth2" min="0" max="1" step="0.01" value="0">
       </div>
     </div>
 
-    <!-- FX -->
+    <!-- EFFECTS -->
     <div class="panel">
       <h2>Effects</h2>
-      <div>
-        <label for="distAmount">Distortion Amount</label>
-        <input type="range" id="distAmount" min="0" max="1" step="0.01" value="0">
+      <div class="row">
+        <label for="distAmount">Distortion Amount</label><input type="range" id="distAmount" min="0" max="1" step="0.01" value="0">
       </div>
-      <div>
-        <label for="chorusRate">Chorus Rate</label>
-        <input type="range" id="chorusRate" min="0.1" max="5" step="0.1" value="1">
+      <div class="row">
+        <label for="chorusRate">Chorus Rate</label><input type="range" id="chorusRate" min="0.1" max="5" step="0.1" value="1">
       </div>
-      <div>
-        <label for="chorusDepth">Chorus Depth</label>
-        <input type="range" id="chorusDepth" min="0" max="0.01" step="0.0001" value="0.004">
+      <div class="row">
+        <label for="chorusDepth">Chorus Depth</label><input type="range" id="chorusDepth" min="0" max="0.02" step="0.0001" value="0.004">
       </div>
-      <div>
-        <label for="chorusMix">Chorus Mix</label>
-        <input type="range" id="chorusMix" min="0" max="1" step="0.01" value="0.5">
+      <div class="row">
+        <label for="chorusMix">Chorus Mix</label><input type="range" id="chorusMix" min="0" max="1" step="0.01" value="0.5">
       </div>
-      <div>
-        <label for="delayTime">Delay Time (s)</label>
-        <input type="range" id="delayTime" min="0" max="1" step="0.01" value="0.3">
+      <div class="row">
+        <label for="delayTime">Delay Time (s)</label><input type="range" id="delayTime" min="0" max="1" step="0.01" value="0.3">
       </div>
-      <div>
-        <label for="delayFeedback">Delay Feedback</label>
-        <input type="range" id="delayFeedback" min="0" max="0.95" step="0.01" value="0.3">
+      <div class="row">
+        <label for="delayFeedback">Delay Feedback</label><input type="range" id="delayFeedback" min="0" max="0.95" step="0.01" value="0.3">
       </div>
-      <div>
-        <label for="delayMix">Delay Mix</label>
-        <input type="range" id="delayMix" min="0" max="1" step="0.01" value="0.2">
+      <div class="row">
+        <label for="delayMix">Delay Mix</label><input type="range" id="delayMix" min="0" max="1" step="0.01" value="0.2">
       </div>
-      <div>
-        <label for="reverbMix">Reverb Mix</label>
-        <input type="range" id="reverbMix" min="0" max="1" step="0.01" value="0.2">
+      <div class="row">
+        <label for="reverbMix">Reverb Mix</label><input type="range" id="reverbMix" min="0" max="1" step="0.01" value="0.2">
       </div>
-      <div>
-        <label for="bitDepth">Bit Depth</label>
-        <input type="range" id="bitDepth" min="1" max="16" step="1" value="16">
+      <div class="row">
+        <label for="bitDepth">Bit Depth</label><input type="range" id="bitDepth" min="1" max="16" step="1" value="16">
       </div>
-      <div>
-        <label for="sampleRateRedux">Sample Rate Redux</label>
-        <input type="range" id="sampleRateRedux" min="1" max="20" step="1" value="1">
+      <div class="row">
+        <label for="sampleRateRedux">Sample Rate Redux</label><input type="range" id="sampleRateRedux" min="1" max="20" step="1" value="1">
       </div>
       <hr/>
-      <div>
-        <label for="masterGain">Master Gain</label>
-        <input type="range" id="masterGain" min="0" max="1" step="0.01" value="0.8">
+      <div class="row">
+        <label for="masterGain">Master Gain</label><input type="range" id="masterGain" min="0" max="2" step="0.01" value="0.8">
       </div>
     </div>
-
   </div>
 
-  <script src="https://cdn.jsdelivr.net/gh/greggman/mite@master/dist/mite.min.js"></script>
   <script>
-    // ---------------------------------------------------------
-    // Because of the complexity, we’ll keep the logic in one file.
-    // This is a demonstration, so feel free to reorganize or modularize.
-    // ---------------------------------------------------------
+    /*
+      Due to the size and complexity, this code is still a demonstration.
+      It implements:
+        - Audible cassa & percussion.
+        - Louder, more varied plucky synth (Synth2).
+        - Step length for all sequencers.
+        - Randomize+Morph for each voice + global.
+    */
 
-    // For brevity, we'll rely on some of the same code from before,
-    // then expand to add the second melodic synth, the new drum voices, and the chorus effect.
+    // We'll reuse much of the prior approach, just fixing levels and adding randomization logic.
 
-    // "Global" variables
+    // ---------- GLOBALS ----------
+
     let audioCtx;
-    let isPlayingAll = false;
+    let isPlaying = false;
     let globalTempo = 120;
-    let currentStep = 0;
+    let globalStepCount = 0;
     let lastStepTime = 0;
 
-    // We'll keep track of 16 steps for each of 4 drum tracks:
+    // Rhythm: 4 tracks x 16 steps (max). We'll store each track’s step data plus step length
     let rhythmTracks = [[], [], [], []];
-    // Melodic sequences: each has 16 steps of semitone offsets
+    let rhythmLengths = [16,16,16,16];
+
+    // Melodic: 2 lines, each up to 16 steps
     let melodic1Steps = new Array(16).fill(0);
     let melodic2Steps = new Array(16).fill(0);
+    let melodic1Length = 16, melodic2Length = 16;
+    let melodic1Enabled = true, melodic2Enabled = false;
 
-    // Whether each melodic sequence is enabled
-    let melodic1Enabled = true;
-    let melodic2Enabled = false;
-
-    // AUDIO NODES for “Synth 1” (classic)
+    // SYNTH 1 nodes
     let osc1, osc2, osc1Gain, osc2Gain, ringGain, fmGain, filterNode;
     let env1GainNode, env2GainNode;
-    let env1Gate = false, env2Gate = false;
-    let env1Level = 0, env2Level = 0;
-    let env1Attack = 0.01, env1Release = 0.2, env2Attack = 0.01, env2Release = 0.2;
+    let env1Level=0, env2Level=0;
+    let env1Gate=false, env2Gate=false;
+    let env1Attack=0.01, env1Release=0.2, env2Attack=0.01, env2Release=0.2;
     let lfoOsc, lfoGain;
 
     // Cassa
     let cassaOsc, cassaGain;
-    let cassaGate = false;
-    let cassaEnvLevel = 0;
-    let cassaDecay = 0.3;
+    let cassaLevel=0, cassaGate=false;
+    let cassaDecay=0.3, cassaBaseGain=1; // user can push cassa louder
 
-    // Additional Percussion voices: 3 separate
-    let percVoices = []; // each is { osc, oscGain, noise, noiseGain, filter, envGain, envLevel, envGate, ... }
-    
-    // Melodic Synth 2 (Pluck / Formant)
-    let synth2Osc;       // base oscillator
-    let synth2Filter;    // bandpass for formant
-    let synth2Gain;      // overall volume
-    let synth2EnvLevel = 0;
-    let synth2EnvGate = false;
-    let synth2EnvAttack = 0.01, synth2EnvDecay = 0.5;
+    // Perc (3 voices)
+    let percVoices = []; // each is { osc, oscGain, noise, noiseGain, filter, envGain, envLevel, envGate, pitch, noiseMix, decay }
+
+    // Synth2 (plucky)
+    let synth2Osc, synth2Filter, synth2GainNode;
+    let synth2EnvLevel = 0, synth2EnvGate=false;
+    let synth2EnvAttack=0.01, synth2EnvDecay=0.5, synth2Volume=1;
 
     // Effects
     let distNode;
-    let chorusNode;      // Our custom chorus
-    let chorusGain;      // wet/dry
+    let chorusNode, chorusGain;
     let delayNode, delayFeedbackGain;
     let reverbNode, reverbGain;
     let bitcrusherNode;
     let masterGainNode;
 
-    // ---------------------------------------------------------
-    // On load, build the UI and wait for user interaction
-    // ---------------------------------------------------------
+    // ---------- On Load ----------
     window.addEventListener('load', () => {
       buildRhythmSequencerUI();
       buildMelodicSequencerUI('melodic1Seq', melodic1Steps);
       buildMelodicSequencerUI('melodic2Seq', melodic2Steps);
-
       bindUI();
-      document.body.addEventListener('click', initAudioContext, { once: true });
+      document.body.addEventListener('click', initAudioContext, { once:true });
     });
 
     function initAudioContext() {
@@ -441,89 +419,89 @@
       }
     }
 
-    // ---------------------------------------------------------
-    // Setup the entire audio graph
-    // ---------------------------------------------------------
+    // ---------- Setup Audio Graph ----------
     function setupAudioGraph() {
-      // =========== MASTER & EFFECT CHAIN ===========
       masterGainNode = audioCtx.createGain();
+      masterGainNode.gain.value = 0.8;
       masterGainNode.connect(audioCtx.destination);
 
+      // Dist
       distNode = audioCtx.createWaveShaper();
       updateDistCurve(0);
 
+      // Chorus
       chorusNode = createChorusNode(audioCtx);
       chorusGain = audioCtx.createGain();
       chorusGain.gain.value = 0.5;
 
+      // Delay
       delayNode = audioCtx.createDelay(5.0);
       delayFeedbackGain = audioCtx.createGain();
       delayFeedbackGain.gain.value = 0.3;
 
+      // Reverb
       reverbNode = createSimpleReverb(audioCtx);
       reverbGain = audioCtx.createGain();
       reverbGain.gain.value = 0.2;
 
+      // Bitcrusher
       bitcrusherNode = createBitcrusherNode(audioCtx);
 
-      // Connect chain: Dist → Chorus → Delay → Reverb → Bitcrusher → Master
+      // Connect effect chain
+      // dist -> chorus -> chorusGain -> delay -> feedback -> reverb -> reverbGain -> bitcrusher -> master
       distNode.connect(chorusNode.input);
       chorusNode.output.connect(chorusGain);
       chorusGain.connect(delayNode);
       delayNode.connect(delayFeedbackGain);
-      delayFeedbackGain.connect(delayNode); // feedback loop
+      delayFeedbackGain.connect(delayNode);  // feedback loop
       delayNode.connect(reverbNode);
       reverbNode.connect(reverbGain);
       reverbGain.connect(bitcrusherNode);
       bitcrusherNode.connect(masterGainNode);
 
-      // =========== SYNTH 1 (Classic) ===========
+      // ============ SYNTH1 ============
       filterNode = audioCtx.createBiquadFilter();
       filterNode.type = 'lowpass';
-      filterNode.frequency.value = 1000;
-      filterNode.Q.value = 1;
+      filterNode.frequency.value=1000;
+      filterNode.Q.value=1;
 
       osc1 = audioCtx.createOscillator();
       osc1.type = 'sawtooth';
-      osc1.frequency.value = 220;
+      osc1.frequency.value=220;
       osc1Gain = audioCtx.createGain();
-      osc1Gain.gain.value = 0.8;
+      osc1Gain.gain.value=0.8;
       osc1.connect(osc1Gain).connect(filterNode);
 
       osc2 = audioCtx.createOscillator();
       osc2.type = 'triangle';
-      osc2.frequency.value = 220;
+      osc2.frequency.value=220;
       osc2Gain = audioCtx.createGain();
-      osc2Gain.gain.value = 0.8;
+      osc2Gain.gain.value=0.8;
       osc2.connect(osc2Gain).connect(filterNode);
 
-      // Ring mod
-      let ringOscGain = audioCtx.createGain();
-      ringOscGain.gain.value = 1.0;
       ringGain = audioCtx.createGain();
-      ringGain.gain.value = 0.0; // ring level
+      ringGain.gain.value=0.0;
+      let ringOscGain = audioCtx.createGain();
+      ringOscGain.gain.value=1.0;
       osc1.connect(ringOscGain);
       osc2.connect(ringOscGain.gain);
       ringOscGain.connect(ringGain).connect(filterNode);
 
-      // FM (osc1 modulates osc2 freq)
       fmGain = audioCtx.createGain();
-      fmGain.gain.value = 0;
+      fmGain.gain.value=0;
       osc1.connect(fmGain);
       fmGain.connect(osc2.frequency);
 
-      // Envelope Gains
       env1GainNode = audioCtx.createGain();
       env2GainNode = audioCtx.createGain();
-      env1GainNode.gain.value = 0;
-      env2GainNode.gain.value = 0;
+      env1GainNode.gain.value=0;
+      env2GainNode.gain.value=0;
 
-      // Filter out -> env1 + env2 -> dist
-      const filterOut = audioCtx.createGain();
+      let filterOut = audioCtx.createGain();
       filterNode.connect(filterOut);
       filterOut.connect(env1GainNode).connect(distNode);
 
-      const filterOut2 = audioCtx.createGain();
+      let filterOut2 = audioCtx.createGain();
       filterNode.connect(filterOut2);
       filterOut2.connect(env2GainNode).connect(distNode);
 
@@ -533,343 +511,302 @@
       // LFO
       lfoOsc = audioCtx.createOscillator();
       lfoOsc.type = 'sine';
-      lfoOsc.frequency.value = 2;
+      lfoOsc.frequency.value=2;
       lfoGain = audioCtx.createGain();
-      lfoGain.gain.value = 0;
+      lfoGain.gain.value=0;
       lfoOsc.connect(lfoGain).connect(filterNode.frequency);
       lfoOsc.start();
 
-      // =========== CASSA ===========
+      // ============ CASSA ============
       cassaOsc = audioCtx.createOscillator();
       cassaOsc.type = 'sine';
-      cassaOsc.frequency.value = 60;
+      cassaOsc.frequency.value=60;
       cassaGain = audioCtx.createGain();
-      cassaGain.gain.value = 0;
+      cassaGain.gain.value=0;
       cassaOsc.connect(cassaGain).connect(distNode);
       cassaOsc.start();
 
-      // =========== Additional Percussion (3 voices) ===========
-      // We'll create 3 "PercVoice" objects
+      // ============ Perc Voices (3) ============
       for (let i=0; i<3; i++) {
         percVoices[i] = createPercVoice();
         percVoices[i].outNode.connect(distNode);
       }
 
-      // =========== SYNTH 2 (Plucky / Formant) ===========
+      // ============ Synth2 (plucky) ============
       synth2Osc = audioCtx.createOscillator();
-      synth2Osc.type = 'sawtooth'; // or experiment
-      synth2Osc.frequency.value = 110; // placeholder
+      synth2Osc.type='sawtooth';
+      synth2Osc.frequency.value=110;
       synth2Filter = audioCtx.createBiquadFilter();
-      synth2Filter.type = 'bandpass';
-      synth2Filter.frequency.value = 800;
-      synth2Filter.Q.value = 10;
-      synth2Gain = audioCtx.createGain();
-      synth2Gain.gain.value = 0;
-
-      // Connect
-      synth2Osc.connect(synth2Filter).connect(synth2Gain).connect(distNode);
+      synth2Filter.type='bandpass';
+      synth2Filter.frequency.value=1200;
+      synth2Filter.Q.value=10;
+      synth2GainNode = audioCtx.createGain();
+      synth2GainNode.gain.value=0; // controlled by envelope * user volume
+      synth2Osc.connect(synth2Filter).connect(synth2GainNode).connect(distNode);
       synth2Osc.start();
 
-      // Envelope & stepping for synth2 are handled in the step loop
-
-      // Start envelope animations
+      // Envelope loops
       requestAnimationFrame(envelopeLoop);
     }
 
-    // Create a flexible percussion voice with an oscillator + noise + envelope + filter
     function createPercVoice() {
       const osc = audioCtx.createOscillator();
-      osc.type = 'square';
-      osc.frequency.value = 100;
+      osc.type='square';
+      osc.frequency.value=100;
+
       const oscGain = audioCtx.createGain();
-      oscGain.gain.value = 0;
+      oscGain.gain.value=1.0; // keep high for audibility
 
       const noise = createWhiteNoise(audioCtx);
       const noiseGain = audioCtx.createGain();
-      noiseGain.gain.value = 0;
+      noiseGain.gain.value=0.3;
 
       const filter = audioCtx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.value = 800;
-      filter.Q.value = 5;
+      filter.type='bandpass';
+      filter.frequency.value=800;
+      filter.Q.value=5;
 
       const envGain = audioCtx.createGain();
-      envGain.gain.value = 0;
+      envGain.gain.value=0;
 
-      // Wiring
-      osc.connect(oscGain).connect(filter).connect(envGain);
+      osc.connect(oscGain).connect(filter);
       noise.connect(noiseGain).connect(filter);
-      envGain.gain.value = 0;
+      filter.connect(envGain);
 
       osc.start();
 
-      // final output node from this voice
       return {
-        osc,
-        oscGain,
-        noise,
-        noiseGain,
-        filter,
+        osc, oscGain, noise, noiseGain, filter,
         envGain,
-        outNode: envGain,
-        envLevel: 0,
-        envGate: false,
-        pitch: 100,
-        noiseMix: 0.3,
-        decay: 0.3
+        envLevel:0, envGate:false,
+        pitch:100, noiseMix:0.3, decay:0.3,
+        outNode: envGain
       };
     }
 
     function createWhiteNoise(ctx) {
-      // Single buffer of white noise
-      const bufferSize = 2 * ctx.sampleRate;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
+      let bufferSize = 2*ctx.sampleRate;
+      let buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      let data = buffer.getChannelData(0);
+      for (let i=0; i<bufferSize; i++){
+        data[i] = Math.random()*2 -1;
       }
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.loop = true;
-      source.start();
-      return source;
+      let src = ctx.createBufferSource();
+      src.buffer=buffer;
+      src.loop=true;
+      src.start();
+      return src;
     }
 
-    // ---------------------------------------------------------
-    // Envelope loop (AR for env1, env2, cassa, plus percussion, plus synth2 pluck)
-    // ---------------------------------------------------------
+    // ============ Envelope Loop ============
     function envelopeLoop() {
-      const dt = 1/60; // approx per frame
+      let dt=1/60;
 
-      // Env1
-      if (env1Gate) {
-        env1Level += dt * (1 / Math.max(env1Attack, 0.001));
-        if (env1Level > 1) env1Level = 1;
+      // Synth1 Env1
+      if(env1Gate) {
+        env1Level += dt*(1/Math.max(env1Attack,0.001));
+        if(env1Level>1) env1Level=1;
       } else {
-        env1Level -= dt * (1 / Math.max(env1Release, 0.001));
-        if (env1Level < 0) env1Level = 0;
+        env1Level -= dt*(1/Math.max(env1Release,0.001));
+        if(env1Level<0) env1Level=0;
       }
-      env1GainNode.gain.value = env1Level;
+      env1GainNode.gain.value=env1Level;
 
-      // Env2
-      if (env2Gate) {
-        env2Level += dt * (1 / Math.max(env2Attack, 0.001));
-        if (env2Level > 1) env2Level = 1;
+      // Synth1 Env2
+      if(env2Gate) {
+        env2Level += dt*(1/Math.max(env2Attack,0.001));
+        if(env2Level>1) env2Level=1;
       } else {
-        env2Level -= dt * (1 / Math.max(env2Release, 0.001));
-        if (env2Level < 0) env2Level = 0;
+        env2Level -= dt*(1/Math.max(env2Release,0.001));
+        if(env2Level<0) env2Level=0;
       }
-      env2GainNode.gain.value = env2Level;
+      env2GainNode.gain.value=env2Level;
 
       // Cassa
-      if (cassaGate) {
-        cassaEnvLevel = 1.0;
+      if(cassaGate) {
+        cassaLevel=1.0;
       } else {
-        cassaEnvLevel -= dt * (1 / cassaDecay);
-        if (cassaEnvLevel < 0) cassaEnvLevel = 0;
+        cassaLevel -= dt*(1/cassaDecay);
+        if(cassaLevel<0) cassaLevel=0;
       }
-      cassaGain.gain.value = cassaEnvLevel;
+      cassaGain.gain.value=cassaLevel*cassaBaseGain;
 
       // Perc voices
-      percVoices.forEach((pv) => {
-        if (pv.envGate) {
-          pv.envLevel = 1.0;
+      percVoices.forEach(pv => {
+        if(pv.envGate) {
+          pv.envLevel=1.0;
         } else {
-          pv.envLevel -= dt * (1 / pv.decay);
-          if (pv.envLevel < 0) pv.envLevel = 0;
+          pv.envLevel -= dt*(1/pv.decay);
+          if(pv.envLevel<0) pv.envLevel=0;
         }
-        pv.envGain.gain.value = pv.envLevel;
+        pv.envGain.gain.value=pv.envLevel;
       });
 
-      // Synth2 Pluck envelope
-      if (synth2EnvGate) {
-        // Attack quickly to 1
-        synth2EnvLevel += dt * (1 / Math.max(synth2EnvAttack, 0.001));
-        if (synth2EnvLevel > 1) synth2EnvLevel = 1;
+      // Synth2 pluck
+      if(synth2EnvGate) {
+        synth2EnvLevel += dt*(1/Math.max(synth2EnvAttack,0.001));
+        if(synth2EnvLevel>1) synth2EnvLevel=1;
       } else {
-        // Decay
-        synth2EnvLevel -= dt * (1 / Math.max(synth2EnvDecay, 0.001));
-        if (synth2EnvLevel < 0) synth2EnvLevel = 0;
+        synth2EnvLevel -= dt*(1/Math.max(synth2EnvDecay,0.001));
+        if(synth2EnvLevel<0) synth2EnvLevel=0;
       }
-      // We'll mod the synth2Gain + filter freq from that
-      synth2Gain.gain.value = synth2EnvLevel; 
-      // Additionally, let’s give a slight push on filter frequency
-      synth2Filter.frequency.value += (2000 - synth2Filter.frequency.value) * (synth2EnvLevel * 0.05);
+      // We'll push the filter freq a bit
+      synth2Filter.frequency.value = document.getElementById('synth2FormantFreq').valueAsNumber + 1500*synth2EnvLevel;
+      synth2GainNode.gain.value = synth2EnvLevel*synth2Volume;
 
       requestAnimationFrame(envelopeLoop);
     }
 
-    // ---------------------------------------------------------
-    // Single step loop for everything
-    // ---------------------------------------------------------
+    // ============ Step Loop ============
     function stepLoop() {
-      if (!isPlayingAll) return;
-      const now = performance.now();
-      const stepMs = (60000 / globalTempo) / 4; // 16th note
+      if(!isPlaying) return;
+      let now = performance.now();
+      let stepDuration = (60000/globalTempo)/4; // 16th
+      if(now - lastStepTime >= stepDuration){
+        lastStepTime=now;
+        globalStepCount++;
 
-      if (now - lastStepTime >= stepMs) {
-        lastStepTime = now;
-        currentStep = (currentStep + 1) % 16;
-
-        // Rhythm triggers
-        for (let t=0; t<4; t++) {
-          if (rhythmTracks[t][currentStep]) {
-            triggerDrumTrack(t);
+        // Rhythm
+        for(let t=0; t<4; t++){
+          let length = rhythmLengths[t];
+          let idx = globalStepCount % length;
+          if(rhythmTracks[t][idx]){
+            triggerRhythmTrack(t);
           }
         }
 
-        // Melodic 1
-        if (melodic1Enabled) {
-          const semitoneOffset = melodic1Steps[currentStep];
-          if (semitoneOffset !== 0) {
-            const base = parseInt(document.getElementById('melodic1BaseNote').value);
-            const scaleName = document.getElementById('melodic1Scale').value;
-            const note = quantizeMidi(base + semitoneOffset, scaleName);
-            const freq = midiToFreq(note);
-            // Let’s map that to VCO1 freq as an example
-            if (osc1) osc1.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            // Trigger env1
-            env1Gate = true;
-            setTimeout(() => env1Gate = false, 50);
+        // Melodic1
+        if(melodic1Enabled){
+          let idx = globalStepCount % melodic1Length;
+          let semi = melodic1Steps[idx];
+          if(semi!==0){
+            let base = parseInt(document.getElementById('melodic1BaseNote').value);
+            let scale = document.getElementById('melodic1Scale').value;
+            let note = quantizeMidi(base+semi, scale);
+            let freq = midiToFreq(note);
+            osc1.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            // short env trigger
+            env1Gate=true; setTimeout(()=>env1Gate=false,50);
           }
         }
 
-        // Melodic 2
-        if (melodic2Enabled) {
-          const semi = melodic2Steps[currentStep];
-          if (semi !== 0) {
-            const base2 = parseInt(document.getElementById('melodic2BaseNote').value);
-            const scale2 = document.getElementById('melodic2Scale').value;
-            const note2 = quantizeMidi(base2 + semi, scale2);
-            const freq2 = midiToFreq(note2);
-            // Set synth2Osc freq
-            if (synth2Osc) synth2Osc.frequency.setValueAtTime(freq2, audioCtx.currentTime);
-            // Trigger pluck
-            synth2EnvGate = true;
-            setTimeout(() => synth2EnvGate = false, 50);
+        // Melodic2
+        if(melodic2Enabled){
+          let idx = globalStepCount % melodic2Length;
+          let semi = melodic2Steps[idx];
+          if(semi!==0){
+            let base2 = parseInt(document.getElementById('melodic2BaseNote').value);
+            let scale2= document.getElementById('melodic2Scale').value;
+            let note2= quantizeMidi(base2+semi, scale2);
+            let freq2= midiToFreq(note2);
+            synth2Osc.frequency.setValueAtTime(freq2, audioCtx.currentTime);
+            synth2EnvGate=true; setTimeout(()=>synth2EnvGate=false,50);
           }
         }
       }
-
       requestAnimationFrame(stepLoop);
     }
 
-    function triggerDrumTrack(trackIndex) {
-      switch(trackIndex) {
-        case 0: // Cassa
-          cassaGate = true;
-          setTimeout(() => cassaGate = false, 50);
+    function triggerRhythmTrack(trackIndex){
+      switch(trackIndex){
+        case 0: // cassa
+          cassaGate=true; setTimeout(()=>cassaGate=false,50);
           break;
-        case 1: // PercVoice1
-          percVoices[0].envGate = true;
-          setTimeout(() => percVoices[0].envGate = false, 30);
+        case 1: // Perc1
+          percVoices[0].envGate=true; setTimeout(()=>percVoices[0].envGate=false,30);
           break;
-        case 2: // PercVoice2
-          percVoices[1].envGate = true;
-          setTimeout(() => percVoices[1].envGate = false, 30);
+        case 2: // Perc2
+          percVoices[1].envGate=true; setTimeout(()=>percVoices[1].envGate=false,30);
           break;
-        case 3: // PercVoice3
-          percVoices[2].envGate = true;
-          setTimeout(() => percVoices[2].envGate = false, 30);
+        case 3: // Perc3
+          percVoices[2].envGate=true; setTimeout(()=>percVoices[2].envGate=false,30);
           break;
       }
     }
 
-    // ---------------------------------------------------------
-    // Build Sequencer UI
-    // ---------------------------------------------------------
-    function buildRhythmSequencerUI() {
-      const container = document.getElementById('rhythmContainer');
-      container.innerHTML = '';
-      for (let t = 0; t < 4; t++) {
+    // ============ Sequencer UI ============
+    function buildRhythmSequencerUI(){
+      let container = document.getElementById('rhythmContainer');
+      container.innerHTML='';
+      for(let t=0; t<4; t++){
         rhythmTracks[t] = new Array(16).fill(false);
-        const row = document.createElement('div');
+        let row = document.createElement('div');
         row.classList.add('seq-grid');
-        for (let step = 0; step < 16; step++) {
-          const btn = document.createElement('button');
-          btn.textContent = '0';
-          btn.addEventListener('click', () => {
-            rhythmTracks[t][step] = !rhythmTracks[t][step];
-            btn.textContent = rhythmTracks[t][step] ? '1' : '0';
-            btn.classList.toggle('active', rhythmTracks[t][step]);
+        for(let step=0; step<16; step++){
+          let btn = document.createElement('button');
+          btn.textContent='0';
+          btn.addEventListener('click',()=>{
+            rhythmTracks[t][step]=!rhythmTracks[t][step];
+            btn.textContent= (rhythmTracks[t][step]?'1':'0');
+            btn.classList.toggle('active',rhythmTracks[t][step]);
           });
           row.appendChild(btn);
         }
         container.appendChild(row);
       }
     }
-
-    function buildMelodicSequencerUI(containerId, stepArray) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = '';
+    function buildMelodicSequencerUI(containerId, stepArray){
+      let container = document.getElementById(containerId);
+      container.innerHTML='';
       container.classList.add('seq-grid');
-      for (let i=0; i<16; i++) {
-        stepArray[i] = 0;
-        const btn = document.createElement('button');
-        btn.textContent = '0';
-        btn.addEventListener('click', () => {
-          // cycle among semitone offsets 0..24
-          stepArray[i] = (stepArray[i] + 2) % 24; // increment by 2
-          btn.textContent = stepArray[i];
-          btn.classList.toggle('active', stepArray[i] !== 0);
+      for(let i=0; i<16; i++){
+        stepArray[i]=0;
+        let btn = document.createElement('button');
+        btn.textContent='0';
+        btn.addEventListener('click',()=>{
+          stepArray[i]=(stepArray[i]+2)%24; // cycle semitones
+          btn.textContent=stepArray[i];
+          btn.classList.toggle('active',stepArray[i]!==0);
         });
         container.appendChild(btn);
       }
     }
 
-    // ---------------------------------------------------------
-    // Scale / MIDI Helpers
-    // ---------------------------------------------------------
+    // ============ Scale / MIDI Helpers ============
     const SCALES = {
       none: [],
       major: [0,2,4,5,7,9,11],
       minor: [0,2,3,5,7,8,10]
     };
-
-    function quantizeMidi(midiNote, scaleName) {
-      if (!SCALES[scaleName] || SCALES[scaleName].length === 0) return midiNote;
-      const scale = SCALES[scaleName];
-      const baseOct = Math.floor(midiNote / 12)*12;
-      const noteInOct = midiNote % 12;
-      let minDiff = 999;
-      let closest = scale[0];
-      for (let s of scale) {
-        let diff = Math.abs(s - noteInOct);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closest = s;
+    function quantizeMidi(m, scaleName){
+      if(!SCALES[scaleName] || SCALES[scaleName].length===0) return m;
+      let scale = SCALES[scaleName];
+      let baseOct = Math.floor(m/12)*12;
+      let noteInOct = m % 12;
+      let minDiff=999, closest= scale[0];
+      for(let s of scale){
+        let d = Math.abs(s-noteInOct);
+        if(d<minDiff){
+          minDiff=d; closest=s;
         }
       }
       return baseOct + closest;
     }
-    function midiToFreq(m) {
-      return 440 * Math.pow(2, (m - 69)/12);
+    function midiToFreq(m){
+      return 440 * Math.pow(2, (m-69)/12);
     }
 
-    // ---------------------------------------------------------
-    // Chorus Node
-    // ---------------------------------------------------------
-    function createChorusNode(ctx) {
-      // A minimal chorus: 2 small delay lines, modulated by an LFO
-      const input = ctx.createGain();
-      const output = ctx.createGain();
+    // ============ Chorus =============
+    function createChorusNode(ctx){
+      let input= ctx.createGain();
+      let output= ctx.createGain();
 
-      const delayL = ctx.createDelay(0.05);
-      const delayR = ctx.createDelay(0.05);
-      delayL.delayTime.value = 0.02;
-      delayR.delayTime.value = 0.03;
+      let delayL= ctx.createDelay(0.05);
+      let delayR= ctx.createDelay(0.05);
+      delayL.delayTime.value=0.02;
+      delayR.delayTime.value=0.03;
 
-      const merger = ctx.createChannelMerger(2);
-      delayL.connect(merger, 0, 0);
-      delayR.connect(merger, 0, 1);
+      let merger= ctx.createChannelMerger(2);
+      delayL.connect(merger,0,0);
+      delayR.connect(merger,0,1);
 
-      // LFO
-      const lfo = ctx.createOscillator();
-      lfo.frequency.value = 1;
-      const lfoGainL = ctx.createGain();
-      const lfoGainR = ctx.createGain();
-      lfoGainL.gain.value = 0.004;
-      lfoGainR.gain.value = 0.004;
+      let lfo= ctx.createOscillator();
+      lfo.frequency.value=1;
+
+      let lfoGainL= ctx.createGain();
+      let lfoGainR= ctx.createGain();
+      lfoGainL.gain.value=0.004;
+      lfoGainR.gain.value=0.004;
 
       lfo.connect(lfoGainL).connect(delayL.delayTime);
       lfo.connect(lfoGainR).connect(delayR.delayTime);
@@ -879,294 +816,446 @@
       input.connect(delayR);
       merger.connect(output);
 
-      return {
-        input,
-        output,
-        delayL,
-        delayR,
-        lfo,
-        lfoGainL,
-        lfoGainR
-      };
+      return { input, output, delayL, delayR, lfo, lfoGainL, lfoGainR };
     }
 
-    // ---------------------------------------------------------
-    // Reverb
-    // ---------------------------------------------------------
-    function createSimpleReverb(ctx) {
-      const input = ctx.createGain();
-      // Very naive feedback approach
-      const ap1 = ctx.createBiquadFilter();
-      ap1.type = 'allpass';
-      ap1.frequency.value = 500;
+    // ============ Reverb (naive) ============
+    function createSimpleReverb(ctx){
+      let input= ctx.createGain();
+      let ap1= ctx.createBiquadFilter(); ap1.type='allpass'; ap1.frequency.value=500;
+      let ap2= ctx.createBiquadFilter(); ap2.type='allpass'; ap2.frequency.value=1500;
+      let ap3= ctx.createBiquadFilter(); ap3.type='allpass'; ap3.frequency.value=2000;
+      let feedback= ctx.createGain(); feedback.gain.value=0.7;
 
-      const ap2 = ctx.createBiquadFilter();
-      ap2.type = 'allpass';
-      ap2.frequency.value = 1500;
-
-      const ap3 = ctx.createBiquadFilter();
-      ap3.type = 'allpass';
-      ap3.frequency.value = 2000;
-
-      const feedback = ctx.createGain();
-      feedback.gain.value = 0.7;
-
-      input.connect(ap1);
-      ap1.connect(ap2);
-      ap2.connect(ap3);
-      ap3.connect(feedback);
-      feedback.connect(ap1);
-
+      input.connect(ap1); ap1.connect(ap2); ap2.connect(ap3); ap3.connect(feedback); feedback.connect(ap1);
       return input;
     }
 
-    // ---------------------------------------------------------
-    // Bitcrusher
-    // ---------------------------------------------------------
-    function createBitcrusherNode(ctx) {
-      const spn = ctx.createScriptProcessor(1024, 2, 2);
-      let bitDepth = 16;
-      let sampleReducer = 1;
-      let phase = 0;
-      let phIncrement = 0;
-      spn.onaudioprocess = function(e) {
-        const inputL = e.inputBuffer.getChannelData(0);
-        const inputR = e.inputBuffer.getChannelData(1);
-        const outputL = e.outputBuffer.getChannelData(0);
-        const outputR = e.outputBuffer.getChannelData(1);
+    // ============ Bitcrusher =============
+    function createBitcrusherNode(ctx){
+      let spn= ctx.createScriptProcessor(1024, 2,2);
+      let bitDepth=16, sampleReducer=1;
+      let phase=0;
 
-        const step = Math.pow(0.5, bitDepth);
-        for (let i=0; i<inputL.length; i++) {
-          phIncrement = sampleReducer;
-          phase += phIncrement;
-          if (phase >= 1.0) {
-            phase -= 1.0;
-            const crushedL = step * Math.floor(inputL[i]/step + 0.5);
-            const crushedR = step * Math.floor(inputR[i]/step + 0.5);
-            outputL[i] = crushedL;
-            outputR[i] = crushedR;
+      spn.onaudioprocess= (e)=>{
+        let inL= e.inputBuffer.getChannelData(0);
+        let inR= e.inputBuffer.getChannelData(1);
+        let outL= e.outputBuffer.getChannelData(0);
+        let outR= e.outputBuffer.getChannelData(1);
+
+        let step= Math.pow(0.5, bitDepth);
+
+        for(let i=0; i<inL.length; i++){
+          phase += sampleReducer;
+          if(phase>=1.0){
+            phase-=1.0;
+            let crushedL= step*Math.floor(inL[i]/step + 0.5);
+            let crushedR= step*Math.floor(inR[i]/step + 0.5);
+            outL[i]= crushedL; outR[i]= crushedR;
           } else {
-            outputL[i] = outputL[i-1] || 0;
-            outputR[i] = outputR[i-1] || 0;
+            outL[i]= outL[i-1] || 0;
+            outR[i]= outR[i-1] || 0;
           }
         }
       };
-      spn.updateParams = function(bd, sr) {
-        bitDepth = bd;
-        sampleReducer = sr;
+      spn.updateParams= (bd,sr)=>{
+        bitDepth= bd; sampleReducer= sr;
       };
       return spn;
     }
 
-    // ---------------------------------------------------------
-    // Distortion curve
-    // ---------------------------------------------------------
-    function updateDistCurve(amount) {
-      const n = 256;
-      const curve = new Float32Array(n);
-      for (let i=0; i<n; i++) {
-        const x = (i/(n-1))*2 - 1;
-        curve[i] = ((3 + amount*10)*x*20*Math.PI/180)/(Math.PI + amount*Math.abs(x));
+    // ============ Distortion Curve ============
+    function updateDistCurve(amount){
+      let n=256; let curve= new Float32Array(n);
+      for(let i=0; i<n; i++){
+        let x= (i/(n-1))*2 -1;
+        curve[i]= ((3+amount*10)*x*20*Math.PI/180)/(Math.PI+ amount*Math.abs(x));
       }
-      if (distNode) {
-        distNode.curve = curve;
-        distNode.oversample = '4x';
+      if(distNode){
+        distNode.curve= curve;
+        distNode.oversample='4x';
       }
     }
 
-    // ---------------------------------------------------------
-    // UI BINDINGS
-    // ---------------------------------------------------------
-    function bindUI() {
-      document.getElementById('globalPlayBtn').addEventListener('click', () => {
-        isPlayingAll = !isPlayingAll;
-        if (isPlayingAll) {
-          document.getElementById('globalPlayBtn').textContent = 'Pause All';
-          lastStepTime = performance.now();
+    // ============ UI BINDINGS ============
+    function bindUI(){
+      document.getElementById('globalPlayBtn').addEventListener('click',()=>{
+        isPlaying=!isPlaying;
+        globalStepCount= -1; // reset
+        lastStepTime= performance.now();
+        if(isPlaying){
+          document.getElementById('globalPlayBtn').textContent='Pause All';
           requestAnimationFrame(stepLoop);
         } else {
-          document.getElementById('globalPlayBtn').textContent = 'Play All';
+          document.getElementById('globalPlayBtn').textContent='Play All';
         }
       });
-
-      document.getElementById('globalTempo').addEventListener('input', (e) => {
-        globalTempo = parseFloat(e.target.value);
+      document.getElementById('globalTempo').addEventListener('input',(e)=>{
+        globalTempo= parseFloat(e.target.value);
       });
 
-      // Melodic enable checkboxes
-      document.getElementById('melodic1Enabled').addEventListener('change', (e) => {
-        melodic1Enabled = e.target.checked;
+      // Rhythm track lengths
+      for(let t=0; t<4; t++){
+        document.getElementById(`rhythmLength${t}`).addEventListener('input',(e)=>{
+          rhythmLengths[t]= parseInt(e.target.value);
+        });
+      }
+
+      // Melodic1
+      document.getElementById('melodic1Enabled').addEventListener('change',(e)=>{
+        melodic1Enabled= e.target.checked;
       });
-      document.getElementById('melodic2Enabled').addEventListener('change', (e) => {
-        melodic2Enabled = e.target.checked;
+      document.getElementById('melodic1Length').addEventListener('input',(e)=>{
+        melodic1Length= parseInt(e.target.value);
       });
 
-      // VCO1, VCO2
-      document.getElementById('vco1Freq').addEventListener('input', (e) => {
-        if (osc1) osc1.frequency.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
+      // Melodic2
+      document.getElementById('melodic2Enabled').addEventListener('change',(e)=>{
+        melodic2Enabled= e.target.checked;
       });
-      document.getElementById('vco1Wave').addEventListener('change', (e) => {
-        if (osc1) osc1.type = e.target.value;
-      });
-      document.getElementById('vco1Gain').addEventListener('input', (e) => {
-        if (osc1Gain) osc1Gain.gain.value = parseFloat(e.target.value);
-      });
-      document.getElementById('fmAmount').addEventListener('input', (e) => {
-        if (fmGain) fmGain.gain.value = parseFloat(e.target.value);
+      document.getElementById('melodic2Length').addEventListener('input',(e)=>{
+        melodic2Length= parseInt(e.target.value);
       });
 
-      document.getElementById('vco2Freq').addEventListener('input', (e) => {
-        if (osc2) osc2.frequency.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
-      });
-      document.getElementById('vco2Wave').addEventListener('change', (e) => {
-        if (osc2) osc2.type = e.target.value;
-      });
-      document.getElementById('vco2Gain').addEventListener('input', (e) => {
-        if (osc2Gain) osc2Gain.gain.value = parseFloat(e.target.value);
-      });
-      document.getElementById('ringLevel').addEventListener('input', (e) => {
-        if (ringGain) ringGain.gain.value = parseFloat(e.target.value);
-      });
+      // Synth1
+      linkParam('vco1Freq', val => { if(osc1) osc1.frequency.setValueAtTime(val,audioCtx.currentTime); });
+      linkParam('vco1Wave', val => { if(osc1) osc1.type= val; }, 'select');
+      linkParam('vco1Gain', val => { if(osc1Gain) osc1Gain.gain.value= val; });
+      linkParam('fmAmount', val => { if(fmGain) fmGain.gain.value= val; });
+      linkParam('vco2Freq', val => { if(osc2) osc2.frequency.setValueAtTime(val,audioCtx.currentTime); });
+      linkParam('vco2Wave', val => { if(osc2) osc2.type= val; }, 'select');
+      linkParam('vco2Gain', val => { if(osc2Gain) osc2Gain.gain.value= val; });
+      linkParam('ringLevel', val => { if(ringGain) ringGain.gain.value= val; });
 
-      // Filter
-      document.getElementById('cutoff').addEventListener('input', (e) => {
-        if (filterNode) filterNode.frequency.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
-      });
-      document.getElementById('resonance').addEventListener('input', (e) => {
-        if (filterNode) filterNode.Q.value = parseFloat(e.target.value);
-      });
-
-      // Env1, Env2
-      document.getElementById('env1Attack').addEventListener('input', (e) => {
-        env1Attack = parseFloat(e.target.value);
-      });
-      document.getElementById('env1Release').addEventListener('input', (e) => {
-        env1Release = parseFloat(e.target.value);
-      });
-      document.getElementById('env2Attack').addEventListener('input', (e) => {
-        env2Attack = parseFloat(e.target.value);
-      });
-      document.getElementById('env2Release').addEventListener('input', (e) => {
-        env2Release = parseFloat(e.target.value);
-      });
-
-      // LFO
-      document.getElementById('lfoFreq').addEventListener('input', (e) => {
-        if (lfoOsc) lfoOsc.frequency.value = parseFloat(e.target.value);
-      });
-      document.getElementById('lfoDepth').addEventListener('input', (e) => {
-        if (lfoGain) lfoGain.gain.value = parseFloat(e.target.value);
-      });
+      linkParam('cutoff', val => { if(filterNode) filterNode.frequency.setValueAtTime(val,audioCtx.currentTime); });
+      linkParam('resonance', val => { if(filterNode) filterNode.Q.value= val; });
+      linkParam('env1Attack', val => { env1Attack= val; });
+      linkParam('env1Release', val => { env1Release= val; });
+      linkParam('env2Attack', val => { env2Attack= val; });
+      linkParam('env2Release', val => { env2Release= val; });
+      linkParam('lfoFreq', val => { if(lfoOsc) lfoOsc.frequency.value= val; });
+      linkParam('lfoDepth', val => { if(lfoGain) lfoGain.gain.value= val; });
 
       // Cassa
-      document.getElementById('cassaTune').addEventListener('input', (e) => {
-        if (cassaOsc) cassaOsc.frequency.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
-      });
-      document.getElementById('cassaDecay').addEventListener('input', (e) => {
-        cassaDecay = parseFloat(e.target.value);
-      });
-      document.getElementById('cassaDist').addEventListener('input', (e) => {
-        // We could mod the amplitude or feed a small waveshaper. For simplicity, do amplitude boost
-        // (Though in real world, you'd do more advanced shaping.)
-        // We'll just do a quick hack in the envelope loop if needed.
-        // Or do nothing advanced, let user rely on the global distortion node for “cassa dist.”
-      });
+      linkParam('cassaTune', val => { if(cassaOsc) cassaOsc.frequency.setValueAtTime(val,audioCtx.currentTime); });
+      linkParam('cassaDecay', val => { cassaDecay= val; });
+      linkParam('cassaGainCtrl', val => { cassaBaseGain= val; });
 
-      // Additional Perc
-      document.getElementById('perc1Tune').addEventListener('input', (e) => {
-        if (percVoices[0]) percVoices[0].osc.frequency.value = parseFloat(e.target.value);
-        if (percVoices[0]) percVoices[0].pitch = parseFloat(e.target.value);
-      });
-      document.getElementById('perc1Noise').addEventListener('input', (e) => {
-        if (percVoices[0]) percVoices[0].noiseGain.gain.value = parseFloat(e.target.value);
-      });
-      document.getElementById('perc1Decay').addEventListener('input', (e) => {
-        if (percVoices[0]) percVoices[0].decay = parseFloat(e.target.value);
-      });
+      // Perc
+      linkParam('perc1Tune', val => { if(percVoices[0]) percVoices[0].osc.frequency.setValueAtTime(val,audioCtx.currentTime); });
+      linkParam('perc1Noise', val => { if(percVoices[0]) percVoices[0].noiseGain.gain.value= val; });
+      linkParam('perc1Decay', val => { if(percVoices[0]) percVoices[0].decay= val; });
 
-      document.getElementById('perc2Tune').addEventListener('input', (e) => {
-        if (percVoices[1]) percVoices[1].osc.frequency.value = parseFloat(e.target.value);
-      });
-      document.getElementById('perc2Noise').addEventListener('input', (e) => {
-        if (percVoices[1]) percVoices[1].noiseGain.gain.value = parseFloat(e.target.value);
-      });
-      document.getElementById('perc2Decay').addEventListener('input', (e) => {
-        if (percVoices[1]) percVoices[1].decay = parseFloat(e.target.value);
-      });
+      linkParam('perc2Tune', val => { if(percVoices[1]) percVoices[1].osc.frequency.setValueAtTime(val,audioCtx.currentTime); });
+      linkParam('perc2Noise', val => { if(percVoices[1]) percVoices[1].noiseGain.gain.value= val; });
+      linkParam('perc2Decay', val => { if(percVoices[1]) percVoices[1].decay= val; });
 
-      document.getElementById('perc3Tune').addEventListener('input', (e) => {
-        if (percVoices[2]) percVoices[2].osc.frequency.value = parseFloat(e.target.value);
-      });
-      document.getElementById('perc3Noise').addEventListener('input', (e) => {
-        if (percVoices[2]) percVoices[2].noiseGain.gain.value = parseFloat(e.target.value);
-      });
-      document.getElementById('perc3Decay').addEventListener('input', (e) => {
-        if (percVoices[2]) percVoices[2].decay = parseFloat(e.target.value);
-      });
+      linkParam('perc3Tune', val => { if(percVoices[2]) percVoices[2].osc.frequency.setValueAtTime(val,audioCtx.currentTime); });
+      linkParam('perc3Noise', val => { if(percVoices[2]) percVoices[2].noiseGain.gain.value= val; });
+      linkParam('perc3Decay', val => { if(percVoices[2]) percVoices[2].decay= val; });
 
-      // Synth2 (Pluck)
-      document.getElementById('synth2FormantFreq').addEventListener('input', (e) => {
-        if (synth2Filter) synth2Filter.frequency.value = parseFloat(e.target.value);
-      });
-      document.getElementById('synth2FormantQ').addEventListener('input', (e) => {
-        if (synth2Filter) synth2Filter.Q.value = parseFloat(e.target.value);
-      });
-      document.getElementById('synth2EnvAttack').addEventListener('input', (e) => {
-        synth2EnvAttack = parseFloat(e.target.value);
-      });
-      document.getElementById('synth2EnvDecay').addEventListener('input', (e) => {
-        synth2EnvDecay = parseFloat(e.target.value);
-      });
+      // Synth2
+      linkParam('synth2FormantFreq', val => { if(synth2Filter) synth2Filter.frequency.value= val; });
+      linkParam('synth2FormantQ', val => { if(synth2Filter) synth2Filter.Q.value= val; });
+      linkParam('synth2EnvAttack', val => { synth2EnvAttack= val; });
+      linkParam('synth2EnvDecay', val => { synth2EnvDecay= val; });
+      linkParam('synth2Volume', val => { synth2Volume= val; });
 
       // FX
-      document.getElementById('distAmount').addEventListener('input', (e) => {
-        updateDistCurve(parseFloat(e.target.value));
-      });
-      document.getElementById('chorusRate').addEventListener('input', (e) => {
-        let val = parseFloat(e.target.value);
-        if (chorusNode && chorusNode.lfo) chorusNode.lfo.frequency.value = val;
-      });
-      document.getElementById('chorusDepth').addEventListener('input', (e) => {
-        let val = parseFloat(e.target.value);
-        if (chorusNode && chorusNode.lfoGainL) {
-          chorusNode.lfoGainL.gain.value = val;
-          chorusNode.lfoGainR.gain.value = val;
+      linkParam('distAmount', val=> { updateDistCurve(val); });
+      linkParam('chorusRate', val=> { if(chorusNode) chorusNode.lfo.frequency.value= val; });
+      linkParam('chorusDepth', val=> {
+        if(chorusNode){
+          chorusNode.lfoGainL.gain.value= val; chorusNode.lfoGainR.gain.value= val;
         }
       });
-      document.getElementById('chorusMix').addEventListener('input', (e) => {
-        if (chorusGain) chorusGain.gain.value = parseFloat(e.target.value);
+      linkParam('chorusMix', val=> { if(chorusGain) chorusGain.gain.value= val; });
+      linkParam('delayTime', val=> { if(delayNode) delayNode.delayTime.setValueAtTime(val,audioCtx.currentTime); });
+      linkParam('delayFeedback', val=> { if(delayFeedbackGain) delayFeedbackGain.gain.value= val; });
+      linkParam('delayMix', val=> {
+        // In this chain, "delay mix" is partial. Real parallel routing is better, but let's do a partial hack
+      });
+      linkParam('reverbMix', val=> { if(reverbGain) reverbGain.gain.value= val; });
+      linkParam('bitDepth', val=> { if(bitcrusherNode && bitcrusherNode.updateParams){
+        let sr= parseInt(document.getElementById('sampleRateRedux').value);
+        bitcrusherNode.updateParams(parseInt(val), sr);
+      }});
+      linkParam('sampleRateRedux', val=> { if(bitcrusherNode && bitcrusherNode.updateParams){
+        let bd= parseInt(document.getElementById('bitDepth').value);
+        bitcrusherNode.updateParams(bd, parseInt(val));
+      }});
+      linkParam('masterGain', val=> { if(masterGainNode) masterGainNode.gain.value= val; });
+
+      // ---------- RANDOMIZE + CROSSFADE ----------
+      setupRandomUI('Synth1', getSynth1Params, setSynth1Params);
+      setupRandomUI('Cassa', getCassaParams, setCassaParams);
+      setupRandomUI('Perc1', ()=>getPercParams(0), vals=>setPercParams(0,vals));
+      setupRandomUI('Perc2', ()=>getPercParams(1), vals=>setPercParams(1,vals));
+      setupRandomUI('Perc3', ()=>getPercParams(2), vals=>setPercParams(2,vals));
+      setupRandomUI('Synth2', getSynth2Params, setSynth2Params);
+
+      // GLOBAL random
+      document.getElementById('globalRandomizeBtn').addEventListener('click', ()=>{
+        // store user states of all, randomize all
+        storeAllUserStates();
+        randomAllStates();
+      });
+      document.getElementById('globalMorphSlider').addEventListener('input',(e)=>{
+        let x= parseFloat(e.target.value);
+        morphAllStates(x);
+      });
+    }
+
+    function linkParam(elemId, handler, type='range'){
+      let el= document.getElementById(elemId);
+      if(!el) return;
+      if(type==='range'){
+        el.addEventListener('input', e=>{
+          handler(parseFloat(e.target.value));
+        });
+      } else if(type==='select'){
+        el.addEventListener('change', e=>{
+          handler(e.target.value);
+        });
+      }
+    }
+
+    // ---------- Per-Synth Param Management ----------
+    // For each synth, we define:
+    //   getXParams(): returns an object with { paramName: value, ... }
+    //   setXParams(params): sets them
+    // We'll randomize continuous ones linearly, waveforms in discrete ways.
+
+    function getSynth1Params(){
+      return {
+        vco1Freq: osc1 ? osc1.frequency.value : 220,
+        vco1Wave: osc1 ? osc1.type : 'sawtooth',
+        vco1Gain: osc1Gain ? osc1Gain.gain.value : 0.8,
+        fmAmount: fmGain ? fmGain.gain.value : 0,
+        vco2Freq: osc2 ? osc2.frequency.value : 220,
+        vco2Wave: osc2 ? osc2.type : 'triangle',
+        vco2Gain: osc2Gain ? osc2Gain.gain.value : 0.8,
+        ringLevel: ringGain ? ringGain.gain.value : 0,
+        cutoff: filterNode ? filterNode.frequency.value : 1000,
+        resonance: filterNode ? filterNode.Q.value : 1,
+        env1Attack, env1Release, env2Attack, env2Release,
+        lfoFreq: lfoOsc ? lfoOsc.frequency.value : 2,
+        lfoDepth: lfoGain ? lfoGain.gain.value : 0
+      };
+    }
+    function setSynth1Params(p){
+      if(osc1){ osc1.frequency.setValueAtTime(p.vco1Freq,audioCtx.currentTime); if(p._blendWave1!==undefined) osc1.type= p._blendWave1; }
+      if(osc1Gain) osc1Gain.gain.value= p.vco1Gain;
+      if(fmGain) fmGain.gain.value= p.fmAmount;
+      if(osc2){ osc2.frequency.setValueAtTime(p.vco2Freq,audioCtx.currentTime); if(p._blendWave2!==undefined) osc2.type= p._blendWave2; }
+      if(osc2Gain) osc2Gain.gain.value= p.vco2Gain;
+      if(ringGain) ringGain.gain.value= p.ringLevel;
+      if(filterNode){ filterNode.frequency.setValueAtTime(p.cutoff,audioCtx.currentTime); filterNode.Q.value= p.resonance; }
+      env1Attack= p.env1Attack; env1Release= p.env1Release;
+      env2Attack= p.env2Attack; env2Release= p.env2Release;
+      if(lfoOsc) lfoOsc.frequency.value= p.lfoFreq;
+      if(lfoGain) lfoGain.gain.value= p.lfoDepth;
+    }
+    function randomSynth1Params(){
+      let out= {};
+      out.vco1Freq= randFloat(40,1000);
+      out.vco1Gain= randFloat(0,1);
+      out.fmAmount= randFloat(0,400);
+      out.vco2Freq= randFloat(40,1200);
+      out.vco2Gain= randFloat(0,1);
+      out.ringLevel= randFloat(0,1);
+      out.cutoff= randFloat(100,8000);
+      out.resonance= randFloat(1,20);
+      out.env1Attack= randFloat(0,2);
+      out.env1Release= randFloat(0.01,5);
+      out.env2Attack= randFloat(0,2);
+      out.env2Release= randFloat(0.01,5);
+      out.lfoFreq= randFloat(0.1,10);
+      out.lfoDepth= randFloat(0,2000);
+      // waveforms discrete
+      out.vco1Wave= randWaveform();
+      out.vco2Wave= randWaveform();
+      return out;
+    }
+
+    // Cassa
+    function getCassaParams(){
+      return {
+        tune: cassaOsc? cassaOsc.frequency.value:60,
+        decay: cassaDecay,
+        gain: cassaBaseGain
+      };
+    }
+    function setCassaParams(p){
+      if(cassaOsc) cassaOsc.frequency.setValueAtTime(p.tune,audioCtx.currentTime);
+      cassaDecay= p.decay;
+      cassaBaseGain= p.gain;
+    }
+    function randomCassaParams(){
+      return {
+        tune: randFloat(30,100),
+        decay: randFloat(0.01,1.5),
+        gain: randFloat(0.5,2)
+      };
+    }
+
+    // Perc voice i
+    function getPercParams(i){
+      let pv= percVoices[i];
+      return {
+        tune: pv? pv.osc.frequency.value: 100,
+        noise: pv? pv.noiseGain.gain.value: 0.3,
+        decay: pv? pv.decay : 0.3
+      };
+    }
+    function setPercParams(i,p){
+      let pv= percVoices[i];
+      if(!pv) return;
+      pv.osc.frequency.setValueAtTime(p.tune,audioCtx.currentTime);
+      pv.noiseGain.gain.value= p.noise;
+      pv.decay= p.decay;
+    }
+    function randomPercParams(){
+      return {
+        tune: randFloat(50,900),
+        noise: randFloat(0,1),
+        decay: randFloat(0.01,2)
+      };
+    }
+
+    // Synth2
+    function getSynth2Params(){
+      return {
+        formantFreq: synth2Filter? synth2Filter.frequency.value:1200,
+        formantQ: synth2Filter? synth2Filter.Q.value:10,
+        envAttack: synth2EnvAttack,
+        envDecay: synth2EnvDecay,
+        volume: synth2Volume
+      };
+    }
+    function setSynth2Params(p){
+      if(synth2Filter){
+        synth2Filter.frequency.value= p.formantFreq;
+        synth2Filter.Q.value= p.formantQ;
+      }
+      synth2EnvAttack= p.envAttack;
+      synth2EnvDecay= p.envDecay;
+      synth2Volume= p.volume;
+    }
+    function randomSynth2Params(){
+      return {
+        formantFreq: randFloat(100,3000),
+        formantQ: randFloat(1,20),
+        envAttack: randFloat(0,1),
+        envDecay: randFloat(0.01,3),
+        volume: randFloat(0.3,2)
+      };
+    }
+
+    // ============ Setup random UI for a “Synth” ============
+    function setupRandomUI(name, getFn, setFn){
+      const randBtn= document.getElementById(`randomize${name}Btn`);
+      const morphSlider= document.getElementById(`morph${name}`);
+      if(!randBtn || !morphSlider) return;
+
+      // We store userState and randState
+      let userState=null;
+      let randState=null;
+
+      randBtn.addEventListener('click',()=>{
+        // On randomize, snapshot userState, generate random
+        userState= getFn();
+        randState= generateRandomState(userState, name);
       });
 
-      document.getElementById('delayTime').addEventListener('input', (e) => {
-        if (delayNode) delayNode.delayTime.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
-      });
-      document.getElementById('delayFeedback').addEventListener('input', (e) => {
-        if (delayFeedbackGain) delayFeedbackGain.gain.value = parseFloat(e.target.value);
-      });
-      document.getElementById('delayMix').addEventListener('input', (e) => {
-        // We do a simple approach: the final “chorusNode -> delay -> reverb” is fully wet
-        // But we interpret the "delay mix" as the gain after delay => reverb => ...
-        // That can conflict with the chorus mix. Real rigs do parallel routing. We'll do a quick hack:
-        if (delayFeedbackGain) {
-          // This doesn't quite give a typical "dry/wet" but for demonstration, it's simpler.
+      morphSlider.addEventListener('input',(e)=>{
+        const x= parseFloat(e.target.value);
+        if(!userState || !randState){
+          // if user hasn't pressed "Randomize" yet, do nothing
+          return;
         }
+        // compute crossfade
+        let merged= crossfadeStates(userState, randState, x);
+        // set them
+        setFn(merged);
       });
 
-      document.getElementById('reverbMix').addEventListener('input', (e) => {
-        if (reverbGain) reverbGain.gain.value = parseFloat(e.target.value);
-      });
-      document.getElementById('bitDepth').addEventListener('input', updateBitcrusher);
-      document.getElementById('sampleRateRedux').addEventListener('input', updateBitcrusher);
-      function updateBitcrusher() {
-        const bd = parseInt(document.getElementById('bitDepth').value);
-        const sr = parseInt(document.getElementById('sampleRateRedux').value);
-        if (bitcrusherNode && bitcrusherNode.updateParams) {
-          bitcrusherNode.updateParams(bd, sr);
+      function generateRandomState(uS, n){
+        // pick function based on name
+        switch(n){
+          case 'Synth1': return randomSynth1Params();
+          case 'Cassa':  return randomCassaParams();
+          case 'Perc1':  return randomPercParams();
+          case 'Perc2':  return randomPercParams();
+          case 'Perc3':  return randomPercParams();
+          case 'Synth2': return randomSynth2Params();
+        }
+        return {};
+      }
+    }
+
+    function crossfadeStates(userObj, randObj, x){
+      // We linearly interpolate for numeric fields
+      // For discrete wavefields, we switch at x>0.5
+      let out={};
+      for(let k in userObj){
+        let uVal= userObj[k];
+        let rVal= randObj[k];
+        if(typeof uVal==='number' && typeof rVal==='number'){
+          out[k]= uVal + x*(rVal - uVal);
+        } else if(typeof uVal==='string'){
+          // e.g. wave
+          out[`_blendWave${k.includes('vco2')?'2':'1'}`] = (x<0.5)? uVal : rVal;
+        } else {
+          out[k]= uVal; // fallback
         }
       }
-      document.getElementById('masterGain').addEventListener('input', (e) => {
-        if (masterGainNode) masterGainNode.gain.value = parseFloat(e.target.value);
-      });
+      return out;
+    }
+
+    // ============ GLOBAL random =============
+    let globalUserStates={};
+    let globalRandStates={};
+    function storeAllUserStates(){
+      globalUserStates.synth1= getSynth1Params();
+      globalUserStates.cassa= getCassaParams();
+      globalUserStates.perc1= getPercParams(0);
+      globalUserStates.perc2= getPercParams(1);
+      globalUserStates.perc3= getPercParams(2);
+      globalUserStates.synth2= getSynth2Params();
+    }
+    function randomAllStates(){
+      globalRandStates.synth1= randomSynth1Params();
+      globalRandStates.cassa= randomCassaParams();
+      globalRandStates.perc1= randomPercParams();
+      globalRandStates.perc2= randomPercParams();
+      globalRandStates.perc3= randomPercParams();
+      globalRandStates.synth2= randomSynth2Params();
+    }
+    function morphAllStates(x){
+      if(!globalUserStates.synth1 || !globalRandStates.synth1) return;
+      // crossfade each
+      let s1= crossfadeStates(globalUserStates.synth1, globalRandStates.synth1, x);
+      setSynth1Params(s1);
+      let ca= crossfadeStates(globalUserStates.cassa, globalRandStates.cassa, x);
+      setCassaParams(ca);
+      let p1= crossfadeStates(globalUserStates.perc1, globalRandStates.perc1, x);
+      setPercParams(0, p1);
+      let p2= crossfadeStates(globalUserStates.perc2, globalRandStates.perc2, x);
+      setPercParams(1, p2);
+      let p3= crossfadeStates(globalUserStates.perc3, globalRandStates.perc3, x);
+      setPercParams(2, p3);
+      let s2= crossfadeStates(globalUserStates.synth2, globalRandStates.synth2, x);
+      setSynth2Params(s2);
+    }
+
+    // ============ Random Utils ============
+    function randFloat(min, max){
+      return min + Math.random()*(max-min);
+    }
+    function randWaveform(){
+      const waves= ['sine','square','sawtooth','triangle'];
+      return waves[Math.floor(Math.random()*waves.length)];
     }
   </script>
 </body>
