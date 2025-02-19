@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LepLoop V3 Clone (Single-File Demo)</title>
+  <!-- Load the Faust WebAssembly library from the official CDN -->
+  <script src="https://faust.grame.fr/faustwasm/next/faustwasm.js"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #222;
+      color: #eee;
+      margin: 0;
+      padding: 0;
+    }
+    h1, h2 {
+      margin: 1rem;
+    }
+    #app-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin: 1rem;
+    }
+    .control-panel, .sequencer {
+      background: #333;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    .control-panel > div {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: inline-block;
+      width: 160px;
+      margin-right: 1rem;
+    }
+    input[type="range"] {
+      width: 200px;
+      vertical-align: middle;
+    }
+    #steps {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    #steps button {
+      width: 30px;
+      height: 30px;
+      background: #555;
+      color: #fff;
+      border: 1px solid #999;
+      border-radius: 4px;
+      cursor: pointer;
+      outline: none;
+    }
+    #steps button.active {
+      background: #0b3;
+    }
+    .btn {
+      background: #555;
+      color: #fff;
+      border: 1px solid #999;
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      outline: none;
+    }
+    .btn:hover {
+      background: #777;
+    }
+    /* You can add more styling as needed. */
+  </style>
+</head>
+<body>
+  <h1>LepLoop V3 Clone (Single-File Demo)</h1>
+  <div id="app-container">
+    
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <h2>Controls</h2>
+      <div>
+        <label for="vco1Freq">VCO1 Frequency</label>
+        <input type="range" id="vco1Freq" min="20" max="2000" step="1" value="220">
+      </div>
+      <div>
+        <label for="vco2Freq">VCO2 Frequency</label>
+        <input type="range" id="vco2Freq" min="20" max="2000" step="1" value="220">
+      </div>
+      <div>
+        <label for="cutoff">Filter Cutoff</label>
+        <input type="range" id="cutoff" min="20" max="10000" step="10" value="1000">
+      </div>
+      <div>
+        <label for="resonance">Filter Resonance</label>
+        <input type="range" id="resonance" min="0" max="1.2" step="0.01" value="0.6">
+      </div>
+      <div>
+        <label for="masterGain">Master Gain</label>
+        <input type="range" id="masterGain" min="0" max="1" step="0.01" value="0.8">
+      </div>
+      
+      <h3>Effects</h3>
+      <div>
+        <label for="distDrive">Dist Drive</label>
+        <input type="range" id="distDrive" min="1" max="20" step="0.1" value="1">
+      </div>
+      <div>
+        <label for="delayTime">Delay Time (s)</label>
+        <input type="range" id="delayTime" min="0" max="1" step="0.01" value="0.3">
+      </div>
+      <div>
+        <label for="delayFeedback">Delay Feedback</label>
+        <input type="range" id="delayFeedback" min="0" max="0.95" step="0.01" value="0.3">
+      </div>
+      <div>
+        <label for="delayMix">Delay Mix</label>
+        <input type="range" id="delayMix" min="0" max="1" step="0.01" value="0.2">
+      </div>
+      <div>
+        <label for="revSize">Reverb Size</label>
+        <input type="range" id="revSize" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div>
+        <label for="revDamp">Reverb Damping</label>
+        <input type="range" id="revDamp" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div>
+        <label for="revMix">Reverb Mix</label>
+        <input type="range" id="revMix" min="0" max="1" step="0.01" value="0.2">
+      </div>
+      <div>
+        <label for="bitDepth">Bit Depth</label>
+        <input type="range" id="bitDepth" min="1" max="16" step="1" value="16">
+      </div>
+      <div>
+        <label for="sampleRateRedux">Sample Rate Redux</label>
+        <input type="range" id="sampleRateRedux" min="1" max="32" step="1" value="1">
+      </div>
+    </div>
+
+    <!-- Sequencer Panel -->
+    <div class="sequencer">
+      <h2>Sequencer</h2>
+      <button class="btn" id="playPauseBtn">Play</button>
+      <label>Tempo <input type="number" id="tempo" value="120" style="width:50px"/></label>
+      <div id="steps"></div>
+    </div>
+  </div>
+
+  <!-- Inline DSP Code as a JS String for on-the-fly compilation -->
+  <script>
+    const leploopDSP = `import("stdfaust.lib");
+import("filter.lib");    
+import("envelope.lib");  
+import("disto.lib");     
+import("reverb.lib");    
+import("delay.lib");     
+import("ba.lib");        
+import("maths.lib");     
+
+declare name "LepLoop SingleFile DSP";
+
+// ----------------------------------------------------------------
+// Oscillators & Mixer
+// ----------------------------------------------------------------
+wave_selector = nentry("WaveformSelect", 0, 0, 2, 1) : si.smoo; 
+fm_amount = hslider("FM Amount", 0.0, 0, 1000, 0.1) : si.smoo;
+fm_source = hslider("FM Source (Hz)", 0.0, 0, 1000, 0.1) : si.smoo;
+
+vco1_freq = hslider("VCO1/Freq", 220.0, 20.0, 2000.0, 0.1) : si.smoo;
+vco2_freq = hslider("VCO2/Freq", 220.0, 20.0, 2000.0, 0.1) : si.smoo;
+
+// Basic wave selection
+waveform(freq, sel) = select2(sel,
+    ba.triangle(freq),
+    ba.square(freq),
+    ba.sawtooth(freq)
+);
+
+vco1_base = waveform(vco1_freq + fm_source*fm_amount, wave_selector);
+vco2_base = waveform(vco2_freq, wave_selector);
+
+// Ring Mod
+ring_mod = vco1_base * vco2_base;
+
+vco1_level = hslider("Mixer/VCO1 Level", 0.8, 0, 1, 0.01);
+vco2_level = hslider("Mixer/VCO2 Level", 0.8, 0, 1, 0.01);
+ring_level = hslider("Mixer/RingMod Level", 0.0, 0, 1, 0.01);
+
+osc_mix = vco1_base*vco1_level + vco2_base*vco2_level + ring_mod*ring_level;
+
+// ----------------------------------------------------------------
+// Cassa (Kick)
+// ----------------------------------------------------------------
+cassa_gate = button("Cassa/Gate");
+cassa_pitch = hslider("Cassa/Pitch", 60, 20, 120, 0.1);
+cassa_decay = hslider("Cassa/Decay", 0.2, 0.01, 2.0, 0.01);
+cassa_dist  = hslider("Cassa/Distortion", 0.0, 0.0, 1.0, 0.01);
+
+cassa_env = cassa_gate : en.ar(0.0, cassa_decay);
+cassa_out = os.sin(freq(cassa_pitch)) * cassa_env;
+cassa_dist_out = distort(cassa_out, 1.0 + cassa_dist*5.0);
+
+// ----------------------------------------------------------------
+// Filter (Approx Diode Ladder / 24dB) 
+// ----------------------------------------------------------------
+cutoff = hslider("VCF/Cutoff", 1000, 20, 10000, 1) : si.smoo;
+res    = hslider("VCF/Resonance", 0.6, 0, 1.2, 0.01) : si.smoo;
+
+vcf_out = vcf_wilson(osc_mix, cutoff, res);
+
+// ----------------------------------------------------------------
+// Envelopes & VCA
+// ----------------------------------------------------------------
+gate1 = button("ENV1/Gate"); 
+a1    = hslider("ENV1/Attack", 0.01, 0.001, 2.0, 0.001);
+r1    = hslider("ENV1/Release", 0.2, 0.001, 5.0, 0.001);
+
+gate2 = button("ENV2/Gate");
+a2    = hslider("ENV2/Attack", 0.01, 0.001, 2.0, 0.001);
+r2    = hslider("ENV2/Release", 0.2, 0.001, 5.0, 0.001);
+
+env1 = gate1 : en.ar(a1, r1) : si.smoo;
+env2 = gate2 : en.ar(a2, r2) : si.smoo;
+
+vca1_source = hslider("VCA1 Source", 0, 0, 1, 1); 
+vca1_in = select2(vca1_source, osc_mix, vcf_out);
+vca1_out = vca1_in * env1;
+
+vca2_source = hslider("VCA2 Source", 0, 0, 1, 1); 
+vca2_in = select2(vca2_source, vco1_base, vcf_out);
+vca2_out = vca2_in * env2;
+
+// ----------------------------------------------------------------
+// Mixer
+// ----------------------------------------------------------------
+cassa_mix = hslider("Mixer/Cassa Level", 1, 0, 1, 0.01);
+vca1_mix  = hslider("Mixer/VCA1 Level", 0.8, 0, 1, 0.01);
+vca2_mix  = hslider("Mixer/VCA2 Level", 0.8, 0, 1, 0.01);
+vcf_mix   = hslider("Mixer/VCF Direct Level", 0.0, 0, 1, 0.01);
+
+mixed = cassa_dist_out * cassa_mix 
+      + vca1_out        * vca1_mix
+      + vca2_out        * vca2_mix
+      + vcf_out         * vcf_mix;
+
+// ----------------------------------------------------------------
+// Effects
+// ----------------------------------------------------------------
+dist_drive    = hslider("FX/Distortion Drive", 1.0, 1.0, 20.0, 0.1);
+dist_output   = distort(mixed * dist_drive, 1.0);
+
+delay_time    = hslider("FX/Delay Time (s)", 0.3, 0, 1, 0.01);
+delay_fb      = hslider("FX/Delay Feedback", 0.3, 0, 0.95, 0.01);
+delay_wet     = hslider("FX/Delay Mix", 0.2, 0, 1, 0.01);
+del           = echo(dist_output, delay_time, delay_fb);
+delay_out     = mix(dist_output, del, delay_wet);
+
+rev_size      = hslider("FX/Reverb Size", 0.5, 0, 1, 0.01);
+rev_damp      = hslider("FX/Reverb Damp", 0.5, 0, 1, 0.01);
+rev_wet       = hslider("FX/Reverb Mix", 0.2, 0, 1, 0.01);
+reverb_out    = freeverb(delay_out, rev_size, rev_damp, rev_wet);
+
+bit_depth     = hslider("FX/Bit Depth", 16, 1, 16, 1);
+sample_reduce = hslider("FX/Sample Rate Reduction", 1, 1, 32, 1);
+crusher_out   = ba.bitcrusher(reverb_out, bit_depth, sample_reduce);
+
+gain_master   = hslider("Master/Gain", 0.8, 0, 1, 0.01);
+
+process = (_,_) :> crusher_out * gain_master, crusher_out * gain_master;
+
+// ----------------------------------------------------------------
+// Helpers
+// ----------------------------------------------------------------
+distort(x,drive) = dw.disto(x, drive, 0.5);
+echo(input, time, fb) = _ <: de.delay(time) ~ +( * fb );
+freq(note) = 440.0 * ma.pow(2, (note - 69)/12);
+`;
+
+    let audioCtx = null;
+    let dspNode = null;
+    let isPlaying = false;
+    let currentStep = 0;
+    let tempo = 120;
+    let lastTime = 0;
+    const steps = new Array(16).fill(false); // one track of 16 steps
+
+    // Once the page loads, we set up the UI
+    window.addEventListener("load", () => {
+      // Build step buttons
+      const stepsContainer = document.getElementById("steps");
+      steps.forEach((val, i) => {
+        const stepBtn = document.createElement("button");
+        stepBtn.textContent = (val ? "1" : "0");
+        stepBtn.addEventListener("click", () => {
+          steps[i] = !steps[i];
+          stepBtn.textContent = steps[i] ? "1" : "0";
+          stepBtn.classList.toggle("active", steps[i]);
+        });
+        stepsContainer.appendChild(stepBtn);
+      });
+
+      // Bind UI
+      document.getElementById("playPauseBtn").addEventListener("click", togglePlay);
+      document.getElementById("tempo").addEventListener("change", (e) => {
+        tempo = parseFloat(e.target.value);
+      });
+
+      // Range controls
+      bindParam("vco1Freq", "/LepLoop_SingleFile_DSP/VCO1_Freq");
+      bindParam("vco2Freq", "/LepLoop_SingleFile_DSP/VCO2_Freq");
+      bindParam("cutoff",   "/LepLoop_SingleFile_DSP/VCF_Cutoff");
+      bindParam("resonance","/LepLoop_SingleFile_DSP/VCF_Resonance");
+      bindParam("masterGain","/LepLoop_SingleFile_DSP/Master_Gain");
+      bindParam("distDrive","/LepLoop_SingleFile_DSP/FX_Distortion_Drive");
+      bindParam("delayTime","/LepLoop_SingleFile_DSP/FX_Delay_Time__s_");
+      bindParam("delayFeedback","/LepLoop_SingleFile_DSP/FX_Delay_Feedback");
+      bindParam("delayMix","/LepLoop_SingleFile_DSP/FX_Delay_Mix");
+      bindParam("revSize", "/LepLoop_SingleFile_DSP/FX_Reverb_Size");
+      bindParam("revDamp", "/LepLoop_SingleFile_DSP/FX_Reverb_Damp");
+      bindParam("revMix",  "/LepLoop_SingleFile_DSP/FX_Reverb_Mix");
+      bindParam("bitDepth","/LepLoop_SingleFile_DSP/FX_Bit_Depth");
+      bindParam("sampleRateRedux","/LepLoop_SingleFile_DSP/FX_Sample_Rate_Reduction");
+    });
+
+    async function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new AudioContext();
+        await audioCtx.resume(); // iOS Safari needs this
+
+        // Create Faust compiler and compile DSP code on the fly
+        const faust = await Faust.createCompiler(); 
+        const module = await faust.compileDSP(leploopDSP);
+        dspNode = await module.createNode(audioCtx);
+
+        dspNode.connect(audioCtx.destination);
+      }
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      document.getElementById("playPauseBtn").textContent = isPlaying ? "Pause" : "Play";
+
+      if (isPlaying) {
+        // Kick off audio init on first play
+        initAudio().then(() => {
+          lastTime = performance.now();
+          stepLoop();
+        });
+      }
+    }
+
+    function stepLoop() {
+      if (!isPlaying) return;
+      const now = performance.now();
+      const dt = now - lastTime;
+      // 16th note duration in ms
+      const stepDurationMs = (60_000 / tempo) / 4;
+      if (dt >= stepDurationMs) {
+        currentStep = (currentStep + 1) % 16;
+        lastTime = now;
+        // If step is active, send short gate to cassa + ENV1
+        if (steps[currentStep]) {
+          setParamValue("/LepLoop_SingleFile_DSP/Cassa_Gate", 1);
+          setParamValue("/LepLoop_SingleFile_DSP/ENV1_Gate", 1);
+          // short trigger
+          setTimeout(() => {
+            setParamValue("/LepLoop_SingleFile_DSP/Cassa_Gate", 0);
+            setParamValue("/LepLoop_SingleFile_DSP/ENV1_Gate", 0);
+          }, 50);
+        } else {
+          setParamValue("/LepLoop_SingleFile_DSP/Cassa_Gate", 0);
+          setParamValue("/LepLoop_SingleFile_DSP/ENV1_Gate", 0);
+        }
+      }
+      requestAnimationFrame(stepLoop);
+    }
+
+    function bindParam(elementId, faustPath) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.addEventListener("input", () => {
+        const val = parseFloat(el.value);
+        setParamValue(faustPath, val);
+      });
+    }
+
+    function setParamValue(path, value) {
+      if (!dspNode) return;
+      try {
+        dspNode.setParamValue(path, value);
+      } catch (e) {
+        // ignore or log
+        // console.log("Param error:", path, e);
+      }
+    }
+  </script>
+</body>
+</html>
